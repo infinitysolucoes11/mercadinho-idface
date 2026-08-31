@@ -66,6 +66,27 @@ app.post('/cadastrar', (req, res) => {
     });
 });
 
+// Rota para apagar o cliente pelo CPF (via POST enviado pelo botão da interface)
+app.post('/deletar', (req, res) => {
+    const { cpf } = req.body;
+    
+    if (!cpf) {
+        return res.status(400).json({ erro: "Informe o CPF para exclusão!" });
+    }
+
+    db.run(`DELETE FROM clientes WHERE cpf = ?`, [cpf], function(err) {
+        if (err) {
+            console.error("-> ERRO ao deletar:", err.message);
+            return res.status(500).json({ erro: "Erro ao deletar cliente do banco." });
+        }
+        if (this.changes === 0) {
+            return res.status(404).json({ erro: "Nenhum cliente encontrado com este CPF." });
+        }
+        console.log("-> SUCESSO! Cliente com CPF", cpf, "deletado.");
+        res.json({ sucesso: true, mensagem: "Cadastro excluído com sucesso!" });
+    });
+});
+
 // Iniciar o servidor
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);

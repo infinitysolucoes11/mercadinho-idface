@@ -27,7 +27,6 @@
 
         input { width: 90%; padding: 10px; margin: 6px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
         
-        /* Container da Câmera com a Máscara de Rosto */
         .camera-box {
             position: relative;
             width: 100%;
@@ -36,29 +35,30 @@
             overflow: hidden;
             background: #000;
         }
-        video, canvas {
-            width: 100%;
-            display: block;
-            border-radius: 8px;
-        }
+        video, canvas { width: 100%; display: block; border-radius: 8px; }
         
-        /* A máscara oval simulando o molde do rosto */
         .face-mask {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 150px;
-            height: 200px;
-            border: 3px dashed rgba(255, 255, 255, 0.8);
+            width: 160px;
+            height: 220px;
+            border: 3px dashed #00ffcc;
             border-radius: 50% / 60%;
             pointer-events: none;
-            box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.4);
         }
 
-        button { width: 95%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        button:hover { background-color: #218838; }
-        
+        button { width: 95%; padding: 12px; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .btn-verde { background-color: #28a745; }
+        .btn-verde:hover { background-color: #218838; }
+        .btn-azul { background-color: #007bff; }
+        .btn-azul:hover { background-color: #0056b3; }
+        .btn-vermelho { background-color: #dc3545; }
+        .btn-vermelho:hover { background-color: #c82333; }
+        .btn-cinza { background-color: #6c757d; }
+        .btn-cinza:hover { background-color: #5a6268; }
+
         .spinner {
             display: inline-block;
             width: 16px;
@@ -82,27 +82,41 @@
             LOGO DO MERCADINHO
         </div>
 
-        <h2>Cadastro de Cliente</h2>
-        
-        <input type="text" id="nome" placeholder="Nome Completo *" required>
-        <input type="text" id="cpf" placeholder="CPF *" required>
-        <input type="tel" id="telefone" placeholder="Telefone / WhatsApp">
-        <input type="email" id="email" placeholder="E-mail">
-        <input type="text" id="rua" placeholder="Rua / Logradouro">
-        <input type="text" id="bairro" placeholder="Bairro">
-        <input type="text" id="cidade" placeholder="Cidade">
-        <input type="text" id="estado" placeholder="Estado (Ex: SP)">
-        <input type="text" id="pais" placeholder="País" value="Brasil">
-        
-        <div class="camera-box">
-            <video id="video" autoplay playsinline></video>
-            <div id="mask" class="face-mask"></div>
-            <canvas id="canvas" style="display:none;"></canvas>
+        <!-- TELA DE CADASTRO -->
+        <div id="telaCadastro">
+            <h2>Cadastro de Cliente</h2>
+            <input type="text" id="nome" placeholder="Nome Completo *" required>
+            <input type="text" id="cpf" placeholder="CPF *" required>
+            <input type="tel" id="telefone" placeholder="Telefone / WhatsApp">
+            <input type="email" id="email" placeholder="E-mail">
+            <input type="text" id="rua" placeholder="Rua / Logradouro">
+            <input type="text" id="bairro" placeholder="Bairro">
+            <input type="text" id="cidade" placeholder="Cidade">
+            <input type="text" id="estado" placeholder="Estado (Ex: SP)">
+            <input type="text" id="pais" placeholder="País" value="Brasil">
+            
+            <div class="camera-box">
+                <video id="video" autoplay playsinline></video>
+                <div id="mask" class="face-mask"></div>
+                <canvas id="canvas" style="display:none;"></canvas>
+            </div>
+
+            <button id="btnCapturar" class="btn-verde" onclick="tirarFoto()">Capturar Foto</button>
+            <button id="btnSalvar" class="btn-azul" onclick="cadastrar()" style="display:none;">Finalizar Cadastro</button>
+            <button class="btn-vermelho" onclick="irParaTelaExclusao()">Excluir Cadastro</button>
+            <p id="statusCadastro" style="font-weight: bold; margin-top: 10px;"></p>
         </div>
 
-        <button id="btnCapturar" onclick="tirarFoto()">Capturar Foto</button>
-        <button id="btnSalvar" onclick="cadastrar()" style="display:none; background-color: #007bff;">Finalizar Cadastro</button>
-        <p id="status" style="font-weight: bold; margin-top: 10px;"></p>
+        <!-- TELA DE EXCLUSÃO -->
+        <div id="telaExclusao" style="display: none;">
+            <h2>Excluir Cadastro</h2>
+            <p style="font-size: 14px; color: #666;">Digite o CPF do cliente que deseja remover do sistema:</p>
+            <input type="text" id="cpfExcluir" placeholder="Digite o CPF *" required>
+            
+            <button class="btn-vermelho" onclick="executarExclusao()">Confirmar Exclusão</button>
+            <button class="btn-cinza" onclick="voltarParaCadastro()">Voltar</button>
+            <p id="statusExclusao" style="font-weight: bold; margin-top: 10px;"></p>
+        </div>
     </div>
 
     <script>
@@ -123,7 +137,7 @@
             
             fotoData = canvas.toDataURL('image/jpeg');
             video.style.display = 'none';
-            mask.style.display = 'none'; // Esconde a máscara ao tirar a foto
+            mask.style.display = 'none';
             canvas.style.display = 'block';
             document.getElementById('btnCapturar').innerText = 'Tirar Outra Foto';
             document.getElementById('btnCapturar').onclick = resetarFoto;
@@ -132,11 +146,21 @@
 
         function resetarFoto() {
             video.style.display = 'block';
-            mask.style.display = 'block'; // Mostra a máscara novamente
+            mask.style.display = 'block';
             canvas.style.display = 'none';
             document.getElementById('btnCapturar').innerText = 'Capturar Foto';
             document.getElementById('btnCapturar').onclick = tirarFoto;
             document.getElementById('btnSalvar').style.display = 'none';
+        }
+
+        function irParaTelaExclusao() {
+            document.getElementById('telaCadastro').style.display = 'none';
+            document.getElementById('telaExclusao').style.display = 'block';
+        }
+
+        function voltarParaCadastro() {
+            document.getElementById('telaExclusao').style.display = 'none';
+            document.getElementById('telaCadastro').style.display = 'block';
         }
 
         async function cadastrar() {
@@ -149,7 +173,7 @@
             const cidade = document.getElementById('cidade').value;
             const estado = document.getElementById('estado').value;
             const pais = document.getElementById('pais').value;
-            const status = document.getElementById('status');
+            const status = document.getElementById('statusCadastro');
 
             if (!nome || !cpf || !fotoData) {
                 alert("Preencha o Nome, CPF e tire a foto!");
@@ -177,6 +201,38 @@
             } catch (err) {
                 status.innerText = "Erro de conexão com o servidor.";
                 document.getElementById('btnSalvar').disabled = false;
+            }
+        }
+
+        async function executarExclusao() {
+            const cpf = document.getElementById('cpfExcluir').value;
+            const status = document.getElementById('statusExclusao');
+
+            if (!cpf) {
+                alert("Digite o CPF para prosseguir!");
+                return;
+            }
+
+            status.innerHTML = '<div class="spinner" style="border-top-color:#dc3545"></div> Excluindo...';
+
+            try {
+                const resposta = await fetch('/deletar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cpf })
+                });
+
+                const dados = await resposta.json();
+                if (dados.sucesso) {
+                    status.innerText = dados.mensagem;
+                    setTimeout(() => {
+                        location.reload(); // Retorna para a tela inicial de cadastro
+                    }, 2000);
+                } else {
+                    status.innerText = "Erro: " + dados.erro;
+                }
+            } catch (err) {
+                status.innerText = "Erro de conexão com o servidor.";
             }
         }
     </script>
