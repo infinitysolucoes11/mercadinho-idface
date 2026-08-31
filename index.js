@@ -1,5 +1,6 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
+const fetch = require('node-fetch');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -7,21 +8,35 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
 
-// Apaga o banco antigo e cria um novo do zero para eliminar qualquer erro
-const fs = require('fs');
-if (fs.existsSync('./banco.db')) {
-    fs.unlinkSync('./banco.db');
-    console.log("Banco de dados antigo apagado. Iniciando do zero!");
-}
-
 const db = new sqlite3.Database('./banco.db', (err) => {
     if (err) console.error('Erro ao abrir o banco:', err.message);
     else console.log('Banco de dados SQLite conectado com sucesso!');
 });
 
-// Criar tabelas limpas e estruturadas
+// Criar tabelas e inserir as unidades padrão corrigidas para MicroMarket
 db.serialize(() => {
-    // Tabela de clientes com senha para login
+    // Tabela de Unidades / Condomínios
+    db.run(`CREATE TABLE IF NOT EXISTS unidades (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome_condominio TEXT,
+        ip_leitora TEXT,
+        porta_leitora TEXT DEFAULT '80',
+        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`, () => {
+        // Insere automaticamente os três condomínios com o nome correto MicroMarket
+        const unidadesIniciais = [
+            'MicroMarket - Donatello',
+            'MicroMarket - Dversão',
+            'MicroMarket - Fantastique'
+        ];
+        
+        unidadesIniciais.forEach(nome => {
+            db.run(`INSERT OR IGNORE INTO unidades (nome_condominio, ip_leitora) VALUES (?, ?)`, 
+                [nome, '']);
+        });
+    });
+
+    // Tabela de clientes com vínculo à unidade de cadastro
     db.run(`CREATE TABLE IF NOT EXISTS clientes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nome TEXT,
@@ -35,7 +50,9 @@ db.serialize(() => {
         estado TEXT,
         pais TEXT,
         foto_rostos TEXT,
-        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+        unidade_id INTEGER,
+        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(unidade_id) REFERENCES unidades(id)
     )`);
 
     // Tabela de administradores/funcionários
@@ -43,14 +60,11 @@ db.serialize(() => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         usuario TEXT UNIQUE,
         senha TEXT,
-        tipo TEXT, -- 'dono' ou 'funcionario'
+        tipo TEXT, 
         criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
     )`, () => {
-        // Insere o DONO padrão inicial automaticamente
         db.run(`INSERT OR IGNORE INTO administradores (usuario, senha, tipo) VALUES (?, ?, ?)`, 
-            ['admin', '123456', 'dono'], (err) => {
-                if (!err) console.log("-> Administrador padrão (dono) criado: usuario: admin | senha: 123456");
-            }
+            ['admin', '123456', 'dono']
         );
     });
 
@@ -61,6 +75,14 @@ db.serialize(() => {
         nome_condominio TEXT,
         data_hora DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
+});
+
+// Rota para listar unidades no site
+app.get('/api/unidades', (req, res) => {
+    db.all(`SELECT id, nome_condominio FROM unidades`, [], (err, unidades) => {
+        if (err) return res.status(500).json({ erro: "Erro ao buscar unidades." });
+        res.json(unidades);
+    });
 });
 
 // Rota de Login do Cliente
@@ -74,17 +96,17 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Rota de Cadastro do Cliente
+// Rota de Cadastro do Cliente com unidade escolhida
 app.post('/cadastrar', (req, res) => {
-    const { nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto } = req.body;
+    const { nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto, unidade_id } = req.body;
 
     if (!nome || !cpf || !senha || !foto) {
         return res.status(400).json({ erro: "Preencha Nome, CPF, Senha e tire a foto!" });
     }
 
-    const query = `INSERT INTO clientes (nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto_rostos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const query = `INSERT INTO clientes (nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto_rostos, unidade_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     
-    db.run(query, [nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto], function(err) {
+    db.run(query, [nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto, unidade_id], function(err) {
         if (err) {
             return res.status(500).json({ erro: "Este CPF já possui cadastro." });
         }
@@ -118,36 +140,43 @@ app.get('/api/admin/dados', (req, res) => {
     db.all(`SELECT * FROM clientes ORDER BY criado_em DESC`, [], (err, clientes) => {
         db.all(`SELECT * FROM historico_acessos ORDER BY data_hora DESC LIMIT 100`, [], (err2, acessos) => {
             db.all(`SELECT id, usuario, tipo, criado_em FROM administradores`, [], (err3, admins) => {
-                res.json({ clientes, acessos, admins });
+                db.all(`SELECT * FROM unidades`, [], (err4, unidades) => {
+                    res.json({ clientes, acessos, admins, unidades });
+                });
             });
         });
     });
 });
 
-// Rota para o Dono cadastrar novos funcionários
+app.post('/api/admin/unidades', (req, res) => {
+    const { nome_condominio, ip_leitora, porta_leitora } = req.body;
+    db.run(`INSERT INTO unidades (nome_condominio, ip_leitora, porta_leitora) VALUES (?, ?, ?)`, 
+        [nome_condominio, ip_leitora || '', porta_leitora || '80'], function(err) {
+            if (err) return res.status(500).json({ erro: "Erro ao cadastrar unidade." });
+            res.json({ sucesso: true, mensagem: "Unidade cadastrada com sucesso!" });
+        }
+    );
+});
+
 app.post('/api/admin/criar-funcionario', (req, res) => {
     const { usuario, senha } = req.body;
-    if (!usuario || !senha) return res.status(400).json({ erro: "Preencha usuário e senha." });
-
     db.run(`INSERT INTO administradores (usuario, senha, tipo) VALUES (?, ?, 'funcionario')`, [usuario, senha], function(err) {
         if (err) return res.status(500).json({ erro: "Usuário já existe." });
         res.json({ sucesso: true, mensagem: "Funcionário criado com sucesso!" });
     });
 });
 
-// Rota para apagar funcionário (Apenas o Dono poderá fazer isso)
 app.post('/api/admin/deletar-funcionario', (req, res) => {
     const { id } = req.body;
     db.run(`DELETE FROM administradores WHERE id = ? AND tipo != 'dono'`, [id], function(err) {
-        if (err || this.changes === 0) return res.status(400).json({ erro: "Não é possível apagar o Dono ou funcionário não encontrado." });
+        if (err || this.changes === 0) return res.status(400).json({ erro: "Não é possível apagar o Dono." });
         res.json({ sucesso: true, mensagem: "Funcionário removido!" });
     });
 });
 
-// Rota para receber apenas acessos autorizados do iDFace (com a variável 'autorizado' corrigida)
+// Webhook para aceitar apenas acessos autorizados do iDFace
 app.post('/api/controlid/webhook', (req, res) => {
     const dadosAcesso = req.body;
-    
     let cpfOuMatricula = "Desconhecido";
     let autorizado = false;
     
@@ -155,19 +184,16 @@ app.post('/api/controlid/webhook', (req, res) => {
         const log = dadosAcesso.object_changes.find(item => item.object === 'access_logs');
         if (log && log.values) {
             cpfOuMatricula = log.values.user_id || log.values.identifier_id || "Desconhecido";
-            // Variável corrigida corretamente para "autorizado"
             autorizado = log.values.authorized === true || log.values.result === 1;
         }
     }
 
-    // Se NÃO for autorizado, o sistema apenas responde OK para a leitora e não salva no painel
     if (!autorizado) {
         return res.json({ sucesso: true, acao: "ignorado" });
     }
 
-    const nomeCondominio = "Micro Market - Unidade Remota"; 
+    const nomeCondominio = "MicroMarket - Unidade Remota"; 
 
-    // Salva no histórico do admin.html apenas quem entrou com sucesso
     db.run(`INSERT INTO historico_acessos (cpf_cliente, nome_condominio) VALUES (?, ?)`, 
         [cpfOuMatricula, nomeCondominio], (err) => {
             if (err) return res.status(500).json({ sucesso: false, erro: err.message });
