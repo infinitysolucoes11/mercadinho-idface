@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Administrador - Micro Market</title>
+    <title>Painel Gerencial - Micro Market</title>
     <style>
         :root {
             --cor-principal: #ff6600;
@@ -34,6 +34,18 @@
 
         h1 { color: var(--cor-principal); font-size: 22px; margin: 0; }
         h2 { color: var(--cor-principal); font-size: 18px; margin-top: 30px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        
+        .card { background: var(--cor-card); padding: 20px; border-radius: 8px; border: 1px solid #333; margin-bottom: 20px; }
+        
+        input { 
+            padding: 10px; 
+            margin: 5px 0; 
+            background-color: #2a2a2a;
+            border: 1px solid #444; 
+            color: white;
+            border-radius: 6px; 
+            font-size: 14px; 
+        }
         
         .btn {
             background-color: var(--cor-principal);
@@ -71,125 +83,202 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🛒 Painel Gerencial - Micro Market</h1>
-            <a href="/" class="btn">Ir para o Site de Cadastro</a>
+        <!-- TELA DE LOGIN DO ADMIN -->
+        <div id="adminLoginBox" class="card" style="max-width: 400px; margin: 50px auto; text-align: center;">
+            <h2 style="color: var(--cor-principal); border: none;">Acesso Restrito</h2>
+            <p style="font-size: 13px; color: var(--cor-cinza);">Faça login como Administrador</p>
+            <input type="text" id="adminUser" placeholder="Usuário (ex: admin)" style="width: 90%;"><br>
+            <input type="password" id="adminPass" placeholder="Senha" style="width: 90%;"><br>
+            <button class="btn" onclick="fazerLoginAdmin()" style="width: 95%; margin-top: 10px;">Entrar no Painel</button>
+            <p id="statusAdminLogin" style="color: #dc3545; font-size: 13px; margin-top: 10px;"></p>
         </div>
 
-        <!-- SEÇÃO 1: HISTÓRICO DE ACESSOS POR CONDOMÍNIO -->
-        <h2>📍 Histórico de Acessos nas Unidades</h2>
-        <p style="color: var(--cor-cinza); font-size: 13px;">Registro de entrada dos clientes nas leitoras de cada condomínio:</p>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Data e Hora</th>
-                        <th>Condomínio / Unidade</th>
-                        <th>CPF do Cliente</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelaAcessos">
-                    <tr><td colspan="3" class="sem-dados">Carregando acessos...</td></tr>
-                </tbody>
-            </table>
-        </div>
+        <!-- PAINEL DO ADMIN (Inicialmente oculto) -->
+        <div id="adminDashboardBox" style="display: none;">
+            <div class="header">
+                <div>
+                    <h1>🛒 Painel Gerencial - Micro Market</h1>
+                    <span id="infoUsuarioLogado" style="font-size: 12px; color: var(--cor-cinza);"></span>
+                </div>
+                <button class="btn btn-vermelho" onclick="location.reload()">Sair</button>
+            </div>
 
-        <!-- SEÇÃO 2: CLIENTES CADASTRADOS -->
-        <h2>👥 Clientes Cadastrados</h2>
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Foto</th>
-                        <th>Nome</th>
-                        <th>CPF</th>
-                        <th>Telefone</th>
-                        <th>Cidade</th>
-                        <th>Data Cadastro</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="tabelaClientes">
-                    <tr><td colspan="7" class="sem-dados">Carregando clientes...</td></tr>
-                </tbody>
-            </table>
+            <!-- SEÇÃO DE GERENCIAMENTO DE FUNCIONÁRIOS (Apenas para o Dono) -->
+            <div id="secaoDono" class="card" style="display: none;">
+                <h3 style="color: var(--cor-principal); margin-top: 0;">Gestão de Funcionários (Área do Dono)</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                    <input type="text" id="novoFuncUser" placeholder="Novo Usuário">
+                    <input type="password" id="novoFuncPass" placeholder="Nova Senha">
+                    <button class="btn" onclick="criarFuncionario()">Adicionar Funcionário</button>
+                </div>
+                <div class="table-responsive" style="margin-top: 15px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Usuário</th>
+                                <th>Tipo de Acesso</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabelaAdmins"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- SEÇÃO 1: HISTÓRICO DE ACESSOS -->
+            <h2>📍 Histórico de Entradas nos Condomínios</h2>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data e Hora</th>
+                            <th>Condomínio / Unidade</th>
+                            <th>CPF do Cliente</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaAcessos">
+                        <tr><td colspan="3" class="sem-dados">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SEÇÃO 2: CLIENTES CADASTRADOS -->
+            <h2>👥 Clientes Cadastrados</h2>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Foto</th>
+                            <th>Nome</th>
+                            <th>CPF</th>
+                            <th>Telefone</th>
+                            <th>Cidade</th>
+                            <th>Data</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaClientes">
+                        <tr><td colspan="7" class="sem-dados">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
-        async function carregarDadosAdmin() {
+        let tipoAdminAtual = '';
+
+        async function fazerLoginAdmin() {
+            const usuario = document.getElementById('adminUser').value;
+            const senha = document.getElementById('adminPass').value;
+            const status = document.getElementById('statusAdminLogin');
+
             try {
-                const resposta = await fetch('/api/admin/dados');
-                const dados = await resposta.json();
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, senha })
+                });
+                const dados = await res.json();
+                if (dados.sucesso) {
+                    tipoAdminAtual = dados.tipo;
+                    document.getElementById('adminLoginBox').style.display = 'none';
+                    document.getElementById('adminDashboardBox').style.display = 'block';
+                    document.getElementById('infoUsuarioLogado').innerText = `Logado como: ${dados.usuario} (${dados.tipo})`;
 
-                // Preencher Tabela de Acessos
-                const tbodyAcessos = document.getElementById('tabelaAcessos');
-                if (dados.acessos.length === 0) {
-                    tbodyAcessos.innerHTML = '<tr><td colspan="3" class="sem-dados">Nenhum acesso registrado ainda.</td></tr>';
+                    if (dados.tipo === 'dono') {
+                        document.getElementById('secaoDono').style.display = 'block';
+                    }
+
+                    carregarDadosCompletos();
                 } else {
-                    tbodyAcessos.innerHTML = '';
-                    dados.acessos.forEach(a => {
-                        const dataF = new Date(a.data_hora).toLocaleString('pt-BR');
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${dataF}</td>
-                            <td><span class="badge-condominio">${a.nome_condominio}</span></td>
-                            <td>${a.cpf_cliente}</td>
-                        `;
-                        tbodyAcessos.appendChild(tr);
-                    });
+                    status.innerText = dados.erro;
                 }
-
-                // Preencher Tabela de Clientes
-                const tbodyClientes = document.getElementById('tabelaClientes');
-                if (dados.clientes.length === 0) {
-                    tbodyClientes.innerHTML = '<tr><td colspan="7" class="sem-dados">Nenhum cliente cadastrado.</td></tr>';
-                } else {
-                    tbodyClientes.innerHTML = '';
-                    dados.clientes.forEach(c => {
-                        const dataF = new Date(c.criado_em).toLocaleDateString('pt-BR');
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td><img src="${c.foto_rostos || ''}" class="foto-thumb" alt="Foto"></td>
-                            <td><strong>${c.nome}</strong></td>
-                            <td>${c.cpf}</td>
-                            <td>${c.telefone || '-'}</td>
-                            <td>${c.cidade ? c.cidade + '/' + (c.estado || '') : '-'}</td>
-                            <td>${dataF}</td>
-                            <td><button class="btn btn-vermelho" onclick="deletarCliente('${c.cpf}')">Excluir</button></td>
-                        `;
-                        tbodyClientes.appendChild(tr);
-                    });
-                }
-
             } catch (err) {
-                console.error("Erro ao carregar dados:", err);
+                status.innerText = "Erro de conexão.";
+            }
+        }
+
+        async function carregarDadosCompletos() {
+            try {
+                const res = await fetch('/api/admin/dados');
+                const dados = await res.json();
+
+                // Acessos
+                const tbAcessos = document.getElementById('tabelaAcessos');
+                tbAcessos.innerHTML = dados.acessos.length === 0 ? '<tr><td colspan="3" class="sem-dados">Nenhum acesso registrado.</td></tr>' : '';
+                dados.acessos.forEach(a => {
+                    tbAcessos.innerHTML += `<tr><td>${new Date(a.data_hora).toLocaleString('pt-BR')}</td><td><span class="badge-condominio">${a.nome_condominio}</span></td><td>${a.cpf_cliente}</td></tr>`;
+                });
+
+                // Clientes
+                const tbClientes = document.getElementById('tabelaClientes');
+                tbClientes.innerHTML = dados.clientes.length === 0 ? '<tr><td colspan="7" class="sem-dados">Nenhum cliente cadastrado.</td></tr>' : '';
+                dados.clientes.forEach(c => {
+                    tbClientes.innerHTML += `<tr><td><img src="${c.foto_rostos || ''}" class="foto-thumb"></td><td><strong>${c.nome}</strong></td><td>${c.cpf}</td><td>${c.telefone || '-'}</td><td>${c.cidade || '-'}</td><td>${new Date(c.criado_em).toLocaleDateString('pt-BR')}</td><td><button class="btn btn-vermelho" onclick="deletarCliente('${c.cpf}')">Excluir</button></td></tr>`;
+                });
+
+                // Administradores (Se for dono)
+                if (tipoAdminAtual === 'dono') {
+                    const tbAdmins = document.getElementById('tabelaAdmins');
+                    tbAdmins.innerHTML = '';
+                    dados.admins.forEach(adm => {
+                        let acaoBtn = adm.tipo === 'dono' ? '<span style="color:#777">Principal</span>' : `<button class="btn btn-vermelho" onclick="deletarFuncionario(${adm.id})">Remover</button>`;
+                        tbAdmins.innerHTML += `<tr><td>${adm.usuario}</td><td>${adm.tipo}</td><td>${acaoBtn}</td></tr>`;
+                    });
+                }
+            } catch (err) {
+                console.error("Erro ao carregar painel:", err);
+            }
+        }
+
+        async function criarFuncionario() {
+            const usuario = document.getElementById('novoFuncUser').value;
+            const senha = document.getElementById('novoFuncPass').value;
+
+            if (!usuario || !senha) return alert("Preencha usuário e senha!");
+
+            const res = await fetch('/api/admin/criar-funcionario', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, senha })
+            });
+            const dados = await res.json();
+            if (dados.sucesso) {
+                alert("Funcionário adicionado!");
+                document.getElementById('novoFuncUser').value = '';
+                document.getElementById('novoFuncPass').value = '';
+                carregarDadosCompletos();
+            } else {
+                alert(dados.erro);
+            }
+        }
+
+        async function deletarFuncionario(id) {
+            if (!confirm("Remover acesso deste funcionário?")) return;
+            const res = await fetch('/api/admin/deletar-funcionario', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            const dados = await res.json();
+            if (dados.sucesso) {
+                carregarDadosCompletos();
+            } else {
+                alert(dados.erro);
             }
         }
 
         async function deletarCliente(cpf) {
-            if (!confirm(`Deseja excluir o cliente de CPF ${cpf}?`)) return;
-
-            try {
-                const resposta = await fetch('/deletar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cpf })
-                });
-                const res = await resposta.json();
-                if (res.sucesso) {
-                    alert("Excluído com sucesso!");
-                    carregarDadosAdmin();
-                } else {
-                    alert("Erro: " + res.erro);
-                }
-            } catch (err) {
-                alert("Erro de conexão.");
-            }
+            if (!confirm(`Excluir cliente CPF ${cpf}?`)) return;
+            const res = await fetch('/deletar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ cpf })
+            });
+            const dados = await res.json();
+            if (dados.sucesso) carregarDadosCompletos();
         }
-
-        // Carregar dados ao abrir
-        carregarDadosAdmin();
     </script>
 </body>
 </html>

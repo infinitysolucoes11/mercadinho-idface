@@ -7,17 +7,26 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
 
+// Apaga o banco antigo e cria um novo do zero para eliminar qualquer erro
+const fs = require('fs');
+if (fs.existsSync('./banco.db')) {
+    fs.unlinkSync('./banco.db');
+    console.log("Banco de dados antigo apagado. Iniciando do zero!");
+}
+
 const db = new sqlite3.Database('./banco.db', (err) => {
     if (err) console.error('Erro ao abrir o banco:', err.message);
     else console.log('Banco de dados SQLite conectado com sucesso!');
 });
 
-// Criar as tabelas atualizadas (Clientes, Acessos por Unidade/Condomínio)
+// Criar tabelas limpas e estruturadas
 db.serialize(() => {
+    // Tabela de clientes com senha para login
     db.run(`CREATE TABLE IF NOT EXISTS clientes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         nome TEXT,
         cpf TEXT UNIQUE,
+        senha TEXT,
         telefone TEXT,
         email TEXT,
         rua TEXT,
@@ -29,6 +38,23 @@ db.serialize(() => {
         criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
+    // Tabela de administradores/funcionários
+    db.run(`CREATE TABLE IF NOT EXISTS administradores (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        usuario TEXT UNIQUE,
+        senha TEXT,
+        tipo TEXT, -- 'dono' ou 'funcionario'
+        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`, () => {
+        // Insere o DONO padrão inicial automaticamente
+        db.run(`INSERT OR IGNORE INTO administradores (usuario, senha, tipo) VALUES (?, ?, ?)`, 
+            ['admin', '123456', 'dono'], (err) => {
+                if (!err) console.log("-> Administrador padrão (dono) criado: usuario: admin | senha: 123456");
+            }
+        );
+    });
+
+    // Histórico de acessos por condomínio
     db.run(`CREATE TABLE IF NOT EXISTS historico_acessos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         cpf_cliente TEXT,
@@ -37,29 +63,38 @@ db.serialize(() => {
     )`);
 });
 
-// 1. Rota para cadastrar o cliente (página principal)
-app.post('/cadastrar', (req, res) => {
-    const { nome, cpf, telefone, email, rua, bairro, cidade, estado, pais, foto } = req.body;
-
-    if (!nome || !cpf || !foto) {
-        return res.status(400).json({ erro: "Preencha Nome, CPF e tire a foto!" });
-    }
-
-    const query = `INSERT INTO clientes (nome, cpf, telefone, email, rua, bairro, cidade, estado, pais, foto_rostos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    
-    db.run(query, [nome, cpf, telefone, email, rua, bairro, cidade, estado, pais, foto], function(err) {
-        if (err) {
-            return res.status(500).json({ erro: "CPF já cadastrado ou erro no banco." });
+// Rota de Login do Cliente
+app.post('/api/login', (req, res) => {
+    const { cpf, senha } = req.body;
+    db.get(`SELECT * FROM clientes WHERE cpf = ? AND senha = ?`, [cpf, senha], (err, cliente) => {
+        if (err || !cliente) {
+            return res.status(401).json({ erro: "CPF ou senha incorretos." });
         }
-        res.json({ sucesso: true, id: this.lastID, mensagem: "Cliente cadastrado com sucesso!" });
+        res.json({ sucesso: true, nome: cliente.nome });
     });
 });
 
-// 2. Rota para apagar cliente
+// Rota de Cadastro do Cliente
+app.post('/cadastrar', (req, res) => {
+    const { nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto } = req.body;
+
+    if (!nome || !cpf || !senha || !foto) {
+        return res.status(400).json({ erro: "Preencha Nome, CPF, Senha e tire a foto!" });
+    }
+
+    const query = `INSERT INTO clientes (nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto_rostos) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    
+    db.run(query, [nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto], function(err) {
+        if (err) {
+            return res.status(500).json({ erro: "Este CPF já possui cadastro." });
+        }
+        res.json({ sucesso: true, mensagem: "Cadastro realizado com sucesso!" });
+    });
+});
+
+// Rota para apagar cliente
 app.post('/deletar', (req, res) => {
     const { cpf } = req.body;
-    if (!cpf) return res.status(400).json({ erro: "Informe o CPF!" });
-
     db.run(`DELETE FROM clientes WHERE cpf = ?`, [cpf], function(err) {
         if (err) return res.status(500).json({ erro: "Erro ao deletar." });
         if (this.changes === 0) return res.status(404).json({ erro: "Cliente não encontrado." });
@@ -67,38 +102,45 @@ app.post('/deletar', (req, res) => {
     });
 });
 
-// 3. Rota para a leitora registrar a entrada do cliente em um condomínio específico
-app.post('/api/acesso', (req, res) => {
-    const { cpf, nome_condominio } = req.body;
-
-    if (!cpf || !nome_condominio) {
-        return res.status(400).json({ erro: "Informe o CPF e o nome do condomínio." });
-    }
-
-    // Verifica se o cliente existe
-    db.get(`SELECT nome FROM clientes WHERE cpf = ?`, [cpf], (err, cliente) => {
-        if (err || !cliente) {
-            return res.status(404).json({ erro: "Cliente não cadastrado." });
+// Rota de Login do Administrador
+app.post('/api/admin/login', (req, res) => {
+    const { usuario, senha } = req.body;
+    db.get(`SELECT * FROM administradores WHERE usuario = ? AND senha = ?`, [usuario, senha], (err, admin) => {
+        if (err || !admin) {
+            return res.status(401).json({ erro: "Usuário ou senha inválidos." });
         }
+        res.json({ sucesso: true, tipo: admin.tipo, usuario: admin.usuario });
+    });
+});
 
-        // Registra o acesso
-        db.run(`INSERT INTO historico_acessos (cpf_cliente, nome_condominio) VALUES (?, ?)`, [cpf, nome_condominio], function(err) {
-            if (err) return res.status(500).json({ erro: "Erro ao registrar acesso." });
-            res.json({ sucesso: true, mensagem: `Acesso liberado para ${cliente.nm_cliente || cliente.nome} no ${nome_condominio}!` });
+// Rota para o painel admin buscar dados
+app.get('/api/admin/dados', (req, res) => {
+    db.all(`SELECT * FROM clientes ORDER BY criado_em DESC`, [], (err, clientes) => {
+        db.all(`SELECT * FROM historico_acessos ORDER BY data_hora DESC LIMIT 100`, [], (err2, acessos) => {
+            db.all(`SELECT id, usuario, tipo, criado_em FROM administradores`, [], (err3, admins) => {
+                res.json({ clientes, acessos, admins });
+            });
         });
     });
 });
 
-// 4. Rota para o painel administrativo buscar os acessos e clientes
-app.get('/api/admin/dados', (req, res) => {
-    db.all(`SELECT * FROM clientes ORDER BY criado_em DESC`, [], (err, clientes) => {
-        if (err) return res.status(500).json({ erro: "Erro ao buscar clientes." });
+// Rota para o Dono cadastrar novos funcionários
+app.post('/api/admin/criar-funcionario', (req, res) => {
+    const { usuario, senha } = req.body;
+    if (!usuario || !senha) return res.status(400).json({ erro: "Preencha usuário e senha." });
 
-        db.all(`SELECT * FROM historico_acessos ORDER BY data_hora DESC LIMIT 100`, [], (err, acessos) => {
-            if (err) return res.status(500).json({ erro: "Erro ao buscar acessos." });
+    db.run(`INSERT INTO administradores (usuario, senha, tipo) VALUES (?, ?, 'funcionario')`, [usuario, senha], function(err) {
+        if (err) return res.status(500).json({ erro: "Usuário já existe." });
+        res.json({ sucesso: true, mensagem: "Funcionário criado com sucesso!" });
+    });
+});
 
-            res.json({ clientes, acessos });
-        });
+// Rota para apagar funcionário (Apenas o Dono poderá fazer isso)
+app.post('/api/admin/deletar-funcionario', (req, res) => {
+    const { id } = req.body;
+    db.run(`DELETE FROM administradores WHERE id = ? AND tipo != 'dono'`, [id], function(err) {
+        if (err || this.changes === 0) return res.status(400).json({ erro: "Não é possível apagar o Dono ou funcionário não encontrado." });
+        res.json({ sucesso: true, mensagem: "Funcionário removido!" });
     });
 });
 
