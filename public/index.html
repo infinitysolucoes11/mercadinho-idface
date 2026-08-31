@@ -5,36 +5,112 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro - Mercadinho</title>
     <style>
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f2f5; margin: 0; }
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f2f5; margin: 0; padding: 20px 0; }
         .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-        input { width: 90%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 5px; }
-        video, canvas { width: 100%; border-radius: 8px; margin-top: 10px; background: #000; }
+        
+        .logo-container {
+            width: 100px;
+            height: 100px;
+            background-color: #e9ecef;
+            border: 2px dashed #ced4da;
+            border-radius: 10px;
+            margin: 0 auto 15px auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #6c757d;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .logo-container span { font-size: 24px; margin-bottom: 2px; }
+
+        input { width: 90%; padding: 10px; margin: 6px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        
+        /* Container da Câmera com a Máscara de Rosto */
+        .camera-box {
+            position: relative;
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+        }
+        video, canvas {
+            width: 100%;
+            display: block;
+            border-radius: 8px;
+        }
+        
+        /* A máscara oval simulando o molde do rosto */
+        .face-mask {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 200px;
+            border: 3px dashed rgba(255, 255, 255, 0.8);
+            border-radius: 50% / 60%;
+            pointer-events: none;
+            box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.4);
+        }
+
         button { width: 95%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px; }
         button:hover { background-color: #218838; }
+        
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <div class="card">
+        <div class="logo-container">
+            <span>🛒</span>
+            LOGO DO MERCADINHO
+        </div>
+
         <h2>Cadastro de Cliente</h2>
-        <input type="text" id="nome" placeholder="Nome Completo" required>
-        <input type="text" id="cpf" placeholder="CPF" required>
         
-        <div>
+        <input type="text" id="nome" placeholder="Nome Completo *" required>
+        <input type="text" id="cpf" placeholder="CPF *" required>
+        <input type="tel" id="telefone" placeholder="Telefone / WhatsApp">
+        <input type="email" id="email" placeholder="E-mail">
+        <input type="text" id="rua" placeholder="Rua / Logradouro">
+        <input type="text" id="bairro" placeholder="Bairro">
+        <input type="text" id="cidade" placeholder="Cidade">
+        <input type="text" id="estado" placeholder="Estado (Ex: SP)">
+        <input type="text" id="pais" placeholder="País" value="Brasil">
+        
+        <div class="camera-box">
             <video id="video" autoplay playsinline></video>
+            <div id="mask" class="face-mask"></div>
             <canvas id="canvas" style="display:none;"></canvas>
         </div>
 
         <button id="btnCapturar" onclick="tirarFoto()">Capturar Foto</button>
         <button id="btnSalvar" onclick="cadastrar()" style="display:none; background-color: #007bff;">Finalizar Cadastro</button>
-        <p id="status"></p>
+        <p id="status" style="font-weight: bold; margin-top: 10px;"></p>
     </div>
 
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
+        const mask = document.getElementById('mask');
         let fotoData = '';
 
-        // Ativar a câmera do usuário
         navigator.mediaDevices.getUserMedia({ video: true })
             .then(stream => video.srcObject = stream)
             .catch(err => alert("Erro ao acessar a câmera: " + err));
@@ -47,6 +123,7 @@
             
             fotoData = canvas.toDataURL('image/jpeg');
             video.style.display = 'none';
+            mask.style.display = 'none'; // Esconde a máscara ao tirar a foto
             canvas.style.display = 'block';
             document.getElementById('btnCapturar').innerText = 'Tirar Outra Foto';
             document.getElementById('btnCapturar').onclick = resetarFoto;
@@ -55,6 +132,7 @@
 
         function resetarFoto() {
             video.style.display = 'block';
+            mask.style.display = 'block'; // Mostra a máscara novamente
             canvas.style.display = 'none';
             document.getElementById('btnCapturar').innerText = 'Capturar Foto';
             document.getElementById('btnCapturar').onclick = tirarFoto;
@@ -64,27 +142,41 @@
         async function cadastrar() {
             const nome = document.getElementById('nome').value;
             const cpf = document.getElementById('cpf').value;
+            const telefone = document.getElementById('telefone').value;
+            const email = document.getElementById('email').value;
+            const rua = document.getElementById('rua').value;
+            const bairro = document.getElementById('bairro').value;
+            const cidade = document.getElementById('cidade').value;
+            const estado = document.getElementById('estado').value;
+            const pais = document.getElementById('pais').value;
             const status = document.getElementById('status');
 
             if (!nome || !cpf || !fotoData) {
-                alert("Preencha todos os campos e tire a foto!");
+                alert("Preencha o Nome, CPF e tire a foto!");
                 return;
             }
 
-            status.innerText = "Cadastrando...";
+            status.innerHTML = '<div class="spinner"></div> Cadastrando...';
+            document.getElementById('btnSalvar').disabled = true;
 
-            const resposta = await fetch('/api/cadastrar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ nome, cpf, foto: fotoData })
-            });
+            try {
+                const resposta = await fetch('/cadastrar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, cpf, telefone, email, rua, bairro, cidade, estado, pais, foto: fotoData })
+                });
 
-            const dados = await resposta.json();
-            if (dados.sucesso) {
-                status.innerText = "Cadastro realizado com sucesso!";
-                setTimeout(() => location.reload(), 2000);
-            } else {
-                status.innerText = "Erro: " + dados.erro;
+                const dados = await resposta.json();
+                if (dados.sucesso) {
+                    status.innerText = "Cadastro realizado com sucesso!";
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    status.innerText = "Erro: " + dados.erro;
+                    document.getElementById('btnSalvar').disabled = false;
+                }
+            } catch (err) {
+                status.innerText = "Erro de conexão com o servidor.";
+                document.getElementById('btnSalvar').disabled = false;
             }
         }
     </script>
