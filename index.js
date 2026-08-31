@@ -23,7 +23,6 @@ db.serialize(() => {
         porta_leitora TEXT DEFAULT '80',
         criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
     )`, () => {
-        // Insere automaticamente os três condomínios com o nome correto MicroMarket
         const unidadesIniciais = [
             'MicroMarket - Donatello',
             'MicroMarket - Dversão',
@@ -96,7 +95,7 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// Rota de Cadastro do Cliente com unidade escolhida
+// Rota de Cadastro do Cliente com diagnóstico de erro real
 app.post('/cadastrar', (req, res) => {
     const { nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto, unidade_id } = req.body;
 
@@ -108,7 +107,8 @@ app.post('/cadastrar', (req, res) => {
     
     db.run(query, [nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto, unidade_id], function(err) {
         if (err) {
-            return res.status(500).json({ erro: "Este CPF já possui cadastro." });
+            console.error("ERRO REAL DO BANCO:", err.message);
+            return res.status(500).json({ erro: "Erro técnico: " + err.message });
         }
         res.json({ sucesso: true, mensagem: "Cadastro realizado com sucesso!" });
     });
