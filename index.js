@@ -144,6 +144,23 @@ app.post('/api/admin/deletar-funcionario', (req, res) => {
     });
 });
 
+// Rota para receber o evento de acesso disparado pelo iDFace
+app.post('/api/controlid/webhook', (req, res) => {
+    const dadosAcesso = req.body;
+    
+    // O iDFace envia os dados do usuário reconhecido
+    const cpfOuMatricula = dadosAcesso.user_id || dadosAcesso.register || "Desconhecido"; 
+    const nomeCondominio = "Micro Market - Unidade Teste"; 
+
+    // Salva no histórico que aparece no seu painel admin.html
+    db.run(`INSERT INTO historico_acessos (cpf_cliente, nome_condominio) VALUES (?, ?)`, 
+        [cpfOuMatricula, nomeCondominio], (err) => {
+            if (err) return res.status(500).json({ sucesso: false, erro: err.message });
+            res.json({ sucesso: true, acao: "liberado" });
+        }
+    );
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });
