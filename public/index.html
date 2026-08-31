@@ -55,7 +55,7 @@
 
         h2 { color: var(--cor-principal); margin-bottom: 15px; }
         
-        input { 
+        input, select { 
             width: 90%; 
             padding: 12px; 
             margin: 6px 0; 
@@ -64,8 +64,9 @@
             color: white;
             border-radius: 6px; 
             font-size: 14px; 
+            box-sizing: border-box;
         }
-        input:focus { border-color: var(--cor-principal); outline: none; }
+        input:focus, select:focus { border-color: var(--cor-principal); outline: none; }
 
         .camera-box {
             position: relative;
@@ -170,6 +171,10 @@
             <input type="text" id="estado" placeholder="Estado (Ex: SP)">
             <input type="text" id="pais" placeholder="País" value="Brasil">
             
+            <select id="unidade_id" required>
+                <option value="">Carregando unidades...</option>
+            </select>
+            
             <div class="camera-box">
                 <video id="video" autoplay playsinline></video>
                 <div id="mask" class="face-mask"></div>
@@ -190,12 +195,8 @@
             <div class="section-title">📍 Nossos Pontos de Mercadinhos</div>
             <div class="lojas-list">
                 <div class="loja-item">
-                    <strong>Micro Market - Condomínio Alpha</strong><br>
-                    <span>Endereço em breve...</span>
-                </div>
-                <div class="loja-item">
-                    <strong>Micro Market - Condomínio Bella Vita</strong><br>
-                    <span>Endereço em breve...</span>
+                    <strong>Carregando unidades...</strong><br>
+                    <span>Aguarde...</span>
                 </div>
             </div>
 
@@ -215,6 +216,37 @@
         const mask = document.getElementById('mask');
         let fotoData = '';
         let cpfLogadoAtual = '';
+
+        // Carregar unidades ao iniciar a página
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/api/unidades');
+                const unidades = await res.json();
+                
+                const select = document.getElementById('unidade_id');
+                const listaLojas = document.querySelector('.lojas-list');
+                
+                if (select && unidades.length > 0) {
+                    select.innerHTML = '<option value="">Selecione a Unidade / Condomínio *</option>';
+                    unidades.forEach(u => {
+                        select.innerHTML += `<option value="${u.id}">${u.nome_condominio}</option>`;
+                    });
+                }
+
+                if (listaLojas && unidades.length > 0) {
+                    listaLojas.innerHTML = '';
+                    unidades.forEach(u => {
+                        listaLojas.innerHTML += `
+                            <div class="loja-item">
+                                <strong>${u.nome_condominio}</strong><br>
+                                <span>Unidade ativa Micro Market</span>
+                            </div>`;
+                    });
+                }
+            } catch (err) {
+                console.log("Erro ao carregar unidades:", err);
+            }
+        });
 
         // Ativar câmera se a pessoa for para o cadastro
         function iniciarCamera() {
@@ -299,10 +331,11 @@
             const cidade = document.getElementById('cidade').value;
             const estado = document.getElementById('estado').value;
             const pais = document.getElementById('pais').value;
+            const unidade_id = document.getElementById('unidade_id').value;
             const status = document.getElementById('statusCadastro');
 
-            if (!nome || !cpf || !senha || !fotoData) {
-                alert("Preencha Nome, CPF, Senha e tire a foto!");
+            if (!nome || !cpf || !senha || !fotoData || !unidade_id) {
+                alert("Preencha Nome, CPF, Senha, escolha a Unidade e tire a foto!");
                 return;
             }
 
@@ -312,7 +345,7 @@
                 const res = await fetch('/cadastrar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto: fotoData })
+                    body: JSON.stringify({ nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto: fotoData, unidade_id })
                 });
                 const dados = await res.json();
                 if (dados.sucesso) {

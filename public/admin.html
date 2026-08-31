@@ -125,17 +125,27 @@
                 </div>
             </div>
 
-            <!-- SEÇÃO 1: HISTÓRICO DE ACESSOS COM FILTRO DE CONDOMÍNIO -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px;">
-                <h2 style="margin: 0; border: none;">📍 Histórico de Entradas nos Condomínios</h2>
-                <div>
-                    <label style="font-size: 13px; color: var(--cor-cinza); margin-right: 5px;">Filtrar:</label>
-                    <select id="filtroCondominio" onchange="filtrarAcessos()" style="padding: 6px; font-size: 13px;">
-                        <option value="">Todos os Condomínios</option>
-                        <option value="MicroMarket - Donatello">MicroMarket - Donatello</option>
-                        <option value="MicroMarket - Dversão">MicroMarket - Dversão</option>
-                        <option value="MicroMarket - Fantastique">MicroMarket - Fantastique</option>
-                    </select>
+            <!-- SEÇÃO 1: HISTÓRICO DE ACESSOS COM FILTRO DE CONDOMÍNIO E PERÍODO DE DATAS -->
+            <div class="card" style="margin-top: 30px;">
+                <h2 style="margin-top: 0; border: none;">📍 Histórico de Entradas nos Condomínios</h2>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px;">
+                    <div>
+                        <label style="font-size: 12px; color: var(--cor-cinza); display: block;">Condomínio:</label>
+                        <select id="filtroCondominio" style="padding: 6px; font-size: 13px;">
+                            <option value="">Todos os Condomínios</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: var(--cor-cinza); display: block;">Data Início:</label>
+                        <input type="date" id="filtroDataInicio" style="padding: 5px; font-size: 13px;">
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: var(--cor-cinza); display: block;">Data Fim:</label>
+                        <input type="date" id="filtroDataFim" style="padding: 5px; font-size: 13px;">
+                    </div>
+                    <div style="align-self: flex-end; margin-top: 5px;">
+                        <button class="btn" onclick="carregarDadosCompletos()">Filtrar</button>
+                    </div>
                 </div>
             </div>
             
@@ -164,7 +174,7 @@
                             <th>Nome</th>
                             <th>CPF</th>
                             <th>Telefone</th>
-                            <th>Cidade</th>
+                            <th>Condomínio</th>
                             <th>Data</th>
                             <th>Ações</th>
                         </tr>
@@ -179,7 +189,26 @@
 
     <script>
         let tipoAdminAtual = '';
-        let dadosGlobaisAcessos = [];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            carregarUnidadesFiltro();
+        });
+
+        async function carregarUnidadesFiltro() {
+            try {
+                const res = await fetch('/api/unidades');
+                const unidades = await res.json();
+                const select = document.getElementById('filtroCondominio');
+                if (select && unidades.length > 0) {
+                    select.innerHTML = '<option value="">Todos os Condomínios</option>';
+                    unidades.forEach(u => {
+                        select.innerHTML += `<option value="${u.nome_condominio}">${u.nome_condominio}</option>`;
+                    });
+                }
+            } catch (err) {
+                console.log("Erro ao carregar unidades para filtro");
+            }
+        }
 
         async function fazerLoginAdmin() {
             const usuario = document.getElementById('adminUser').value;
@@ -213,22 +242,34 @@
         }
 
         async function carregarDadosCompletos() {
+            const condominio = document.getElementById('filtroCondominio').value;
+            const data_inicio = document.getElementById('filtroDataInicio').value;
+            const data_fim = document.getElementById('filtroDataFim').value;
+
+            let url = '/api/admin/dados?';
+            if (condominio) url += `condominio=${encodeURIComponent(condominio)}&`;
+            if (data_inicio && data_fim) url += `data_inicio=${data_inicio}&data_fim=${data_fim}`;
+
             try {
-                const res = await fetch('/api/admin/dados');
+                const res = await fetch(url);
                 const dados = await res.json();
 
-                dadosGlobaisAcessos = dados.acessos;
-                exibirAcessos(dadosGlobaisAcessos);
+                // Acessos
+                const tbAcessos = document.getElementById('tabelaAcessos');
+                tbAcessos.innerHTML = dados.acessos.length === 0 ? '<tr><td colspan="3" class="sem-dados">Nenhum acesso registrado.</td></tr>' : '';
+                dados.acessos.forEach(a => {
+                    tbAcessos.innerHTML += `<tr><td>${new Date(a.data_hora).toLocaleString('pt-BR')}</td><td><span class="badge-condominio">${a.nome_condominio}</span></td><td>${a.cpf_cliente}</td></tr>`;
+                });
 
                 // Clientes
                 const tbClientes = document.getElementById('tabelaClientes');
                 tbClientes.innerHTML = dados.clientes.length === 0 ? '<tr><td colspan="7" class="sem-dados">Nenhum cliente cadastrado.</td></tr>' : '';
                 dados.clientes.forEach(c => {
-                    tbClientes.innerHTML += `<tr><td><img src="${c.foto_rostos || ''}" class="foto-thumb"></td><td><strong>${c.nome}</strong></td><td>${c.cpf}</td><td>${c.telefone || '-'}</td><td>${c.cidade || '-'}</td><td>${new Date(c.criado_em).toLocaleDateString('pt-BR')}</td><td><button class="btn btn-vermelho" onclick="deletarCliente('${c.cpf}')">Excluir / Bloquear</button></td></tr>`;
+                    tbClientes.innerHTML += `<tr><td><img src="${c.foto_rostos || ''}" class="foto-thumb"></td><td><strong>${c.nome}</strong></td><td>${c.cpf}</td><td>${c.telefone || '-'}</td><td>${c.nome_condominio || '-'}</td><td>${new Date(c.criado_em).toLocaleDateString('pt-BR')}</td><td><button class="btn btn-vermelho" onclick="deletarCliente('${c.cpf}')">Excluir / Bloquear</button></td></tr>`;
                 });
 
                 // Administradores (Apenas dono)
-                if (tipoAdminAtual === 'dono') {
+                if (tipoAdminAtual === 'dono' && dados.admins) {
                     const tbAdmins = document.getElementById('tabelaAdmins');
                     tbAdmins.innerHTML = '';
                     dados.admins.forEach(adm => {
@@ -239,24 +280,6 @@
             } catch (err) {
                 console.error("Erro ao carregar painel:", err);
             }
-        }
-
-        function exibirAcessos(lista) {
-            const tbAcessos = document.getElementById('tabelaAcessos');
-            tbAcessos.innerHTML = lista.length === 0 ? '<tr><td colspan="3" class="sem-dados">Nenhum acesso registrado.</td></tr>' : '';
-            lista.forEach(a => {
-                tbAcessos.innerHTML += `<tr><td>${new Date(a.data_hora).toLocaleString('pt-BR')}</td><td><span class="badge-condominio">${a.nome_condominio}</span></td><td>${a.cpf_cliente}</td></tr>`;
-            });
-        }
-
-        function filtrarAcessos() {
-            const filtro = document.getElementById('filtroCondominio').value;
-            if (!filtro) {
-                exibirAcessos(dadosGlobaisAcessos);
-                return;
-            }
-            const filtrados = dadosGlobaisAcessos.filter(a => a.nome_condominio === filtro);
-            exibirAcessos(filtrados);
         }
 
         async function criarFuncionario() {
