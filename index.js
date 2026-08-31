@@ -3,18 +3,16 @@ const sqlite3 = require('sqlite3').verbose();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Configuração para aceitar dados grandes (como imagens em Base64) do site
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static('public'));
 
-// Conectar/Criar o banco de dados SQLite
 const db = new sqlite3.Database('./banco.db', (err) => {
     if (err) console.error('Erro ao abrir o banco:', err.message);
     else console.log('Banco de dados SQLite conectado com sucesso!');
 });
 
-// Criar a tabela atualizada com todos os novos campos
+// Criar as tabelas atualizadas (Clientes, Acessos por Unidade/Condomínio)
 db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS clientes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,24 +31,17 @@ db.serialize(() => {
 
     db.run(`CREATE TABLE IF NOT EXISTS historico_acessos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        cliente_id INTEGER,
-        data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (cliente_id) REFERENCES clientes (id)
+        cpf_cliente TEXT,
+        nome_condominio TEXT,
+        data_hora DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 });
 
-// Rota de teste
-app.get('/api', (req, res) => {
-    res.json({ mensagem: "API do Mercadinho funcionando!" });
-});
-
-// Rota para cadastrar o cliente com todos os dados novos
+// 1. Rota para cadastrar o cliente (página principal)
 app.post('/cadastrar', (req, res) => {
-    console.log("-> Recebida requisição de cadastro para o CPF:", req.body.cpf);
     const { nome, cpf, telefone, email, rua, bairro, cidade, estado, pais, foto } = req.body;
 
     if (!nome || !cpf || !foto) {
-        console.log("-> Erro: Faltou preencher campos obrigatórios ou foto.");
         return res.status(400).json({ erro: "Preencha Nome, CPF e tire a foto!" });
     }
 
@@ -58,36 +49,59 @@ app.post('/cadastrar', (req, res) => {
     
     db.run(query, [nome, cpf, telefone, email, rua, bairro, cidade, estado, pais, foto], function(err) {
         if (err) {
-            console.error("-> ERRO no banco ao salvar:", err.message);
-            return res.status(500).json({ erro: "Erro ao cadastrar cliente (CPF já cadastrado?)" });
+            return res.status(500).json({ erro: "CPF já cadastrado ou erro no banco." });
         }
-        console.log("-> SUCESSO! Cliente cadastrado com ID:", this.lastID);
         res.json({ sucesso: true, id: this.lastID, mensagem: "Cliente cadastrado com sucesso!" });
     });
 });
 
-// Rota para apagar o cliente pelo CPF (via POST enviado pelo botão da interface)
+// 2. Rota para apagar cliente
 app.post('/deletar', (req, res) => {
     const { cpf } = req.body;
-    
-    if (!cpf) {
-        return res.status(400).json({ erro: "Informe o CPF para exclusão!" });
-    }
+    if (!cpf) return res.status(400).json({ erro: "Informe o CPF!" });
 
     db.run(`DELETE FROM clientes WHERE cpf = ?`, [cpf], function(err) {
-        if (err) {
-            console.error("-> ERRO ao deletar:", err.message);
-            return res.status(500).json({ erro: "Erro ao deletar cliente do banco." });
-        }
-        if (this.changes === 0) {
-            return res.status(404).json({ erro: "Nenhum cliente encontrado com este CPF." });
-        }
-        console.log("-> SUCESSO! Cliente com CPF", cpf, "deletado.");
+        if (err) return res.status(500).json({ erro: "Erro ao deletar." });
+        if (this.changes === 0) return res.status(404).json({ erro: "Cliente não encontrado." });
         res.json({ sucesso: true, mensagem: "Cadastro excluído com sucesso!" });
     });
 });
 
-// Iniciar o servidor
+// 3. Rota para a leitora registrar a entrada do cliente em um condomínio específico
+app.post('/api/acesso', (req, res) => {
+    const { cpf, nome_condominio } = req.body;
+
+    if (!cpf || !nome_condominio) {
+        return res.status(400).json({ erro: "Informe o CPF e o nome do condomínio." });
+    }
+
+    // Verifica se o cliente existe
+    db.get(`SELECT nome FROM clientes WHERE cpf = ?`, [cpf], (err, cliente) => {
+        if (err || !cliente) {
+            return res.status(404).json({ erro: "Cliente não cadastrado." });
+        }
+
+        // Registra o acesso
+        db.run(`INSERT INTO historico_acessos (cpf_cliente, nome_condominio) VALUES (?, ?)`, [cpf, nome_condominio], function(err) {
+            if (err) return res.status(500).json({ erro: "Erro ao registrar acesso." });
+            res.json({ sucesso: true, mensagem: `Acesso liberado para ${cliente.nm_cliente || cliente.nome} no ${nome_condominio}!` });
+        });
+    });
+});
+
+// 4. Rota para o painel administrativo buscar os acessos e clientes
+app.get('/api/admin/dados', (req, res) => {
+    db.all(`SELECT * FROM clientes ORDER BY criado_em DESC`, [], (err, clientes) => {
+        if (err) return res.status(500).json({ erro: "Erro ao buscar clientes." });
+
+        db.all(`SELECT * FROM historico_acessos ORDER BY data_hora DESC LIMIT 100`, [], (err, acessos) => {
+            if (err) return res.status(500).json({ erro: "Erro ao buscar acessos." });
+
+            res.json({ clientes, acessos });
+        });
+    });
+});
+
 app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
 });

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Administrador - Micro Market</title>
+    <style>
+        :root {
+            --cor-principal: #ff6600;
+            --cor-fundo: #121212;
+            --cor-card: #1e1e1e;
+            --cor-texto: #ffffff;
+            --cor-cinza: #b0b0b0;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            background-color: var(--cor-fundo); 
+            color: var(--cor-texto);
+            margin: 0; 
+            padding: 20px; 
+        }
+
+        .container { max-width: 1000px; margin: 0 auto; }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--cor-principal);
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        h1 { color: var(--cor-principal); font-size: 22px; margin: 0; }
+        h2 { color: var(--cor-principal); font-size: 18px; margin-top: 30px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        
+        .btn {
+            background-color: var(--cor-principal);
+            color: #000;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .btn:hover { background-color: #e05b00; }
+        .btn-vermelho { background-color: #dc3545; color: white; padding: 5px 10px; font-size: 12px; }
+        .btn-vermelho:hover { background-color: #c82333; }
+
+        .table-responsive { overflow-x: auto; background: var(--cor-card); border-radius: 8px; border: 1px solid #333; margin-top: 10px; }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid #333; }
+        th { background-color: #252525; color: var(--cor-principal); }
+        tr:hover { background-color: #252525; }
+
+        .foto-thumb {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid var(--cor-principal);
+        }
+
+        .sem-dados { text-align: center; padding: 30px; color: var(--cor-cinza); }
+        .badge-condominio { background-color: #2a2a2a; color: var(--cor-principal); padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid var(--cor-principal); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛒 Painel Gerencial - Micro Market</h1>
+            <a href="/" class="btn">Ir para o Site de Cadastro</a>
+        </div>
+
+        <!-- SEÇÃO 1: HISTÓRICO DE ACESSOS POR CONDOMÍNIO -->
+        <h2>📍 Histórico de Acessos nas Unidades</h2>
+        <p style="color: var(--cor-cinza); font-size: 13px;">Registro de entrada dos clientes nas leitoras de cada condomínio:</p>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data e Hora</th>
+                        <th>Condomínio / Unidade</th>
+                        <th>CPF do Cliente</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaAcessos">
+                    <tr><td colspan="3" class="sem-dados">Carregando acessos...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SEÇÃO 2: CLIENTES CADASTRADOS -->
+        <h2>👥 Clientes Cadastrados</h2>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Foto</th>
+                        <th>Nome</th>
+                        <th>CPF</th>
+                        <th>Telefone</th>
+                        <th>Cidade</th>
+                        <th>Data Cadastro</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaClientes">
+                    <tr><td colspan="7" class="sem-dados">Carregando clientes...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function carregarDadosAdmin() {
+            try {
+                const resposta = await fetch('/api/admin/dados');
+                const dados = await resposta.json();
+
+                // Preencher Tabela de Acessos
+                const tbodyAcessos = document.getElementById('tabelaAcessos');
+                if (dados.acessos.length === 0) {
+                    tbodyAcessos.innerHTML = '<tr><td colspan="3" class="sem-dados">Nenhum acesso registrado ainda.</td></tr>';
+                } else {
+                    tbodyAcessos.innerHTML = '';
+                    dados.acessos.forEach(a => {
+                        const dataF = new Date(a.data_hora).toLocaleString('pt-BR');
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${dataF}</td>
+                            <td><span class="badge-condominio">${a.nome_condominio}</span></td>
+                            <td>${a.cpf_cliente}</td>
+                        `;
+                        tbodyAcessos.appendChild(tr);
+                    });
+                }
+
+                // Preencher Tabela de Clientes
+                const tbodyClientes = document.getElementById('tabelaClientes');
+                if (dados.clientes.length === 0) {
+                    tbodyClientes.innerHTML = '<tr><td colspan="7" class="sem-dados">Nenhum cliente cadastrado.</td></tr>';
+                } else {
+                    tbodyClientes.innerHTML = '';
+                    dados.clientes.forEach(c => {
+                        const dataF = new Date(c.criado_em).toLocaleDateString('pt-BR');
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><img src="${c.foto_rostos || ''}" class="foto-thumb" alt="Foto"></td>
+                            <td><strong>${c.nome}</strong></td>
+                            <td>${c.cpf}</td>
+                            <td>${c.telefone || '-'}</td>
+                            <td>${c.cidade ? c.cidade + '/' + (c.estado || '') : '-'}</td>
+                            <td>${dataF}</td>
+                            <td><button class="btn btn-vermelho" onclick="deletarCliente('${c.cpf}')">Excluir</button></td>
+                        `;
+                        tbodyClientes.appendChild(tr);
+                    });
+                }
+
+            } catch (err) {
+                console.error("Erro ao carregar dados:", err);
+            }
+        }
+
+        async function deletarCliente(cpf) {
+            if (!confirm(`Deseja excluir o cliente de CPF ${cpf}?`)) return;
+
+            try {
+                const resposta = await fetch('/deletar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cpf })
+                });
+                const res = await resposta.json();
+                if (res.sucesso) {
+                    alert("Excluído com sucesso!");
+                    carregarDadosAdmin();
+                } else {
+                    alert("Erro: " + res.erro);
+                }
+            } catch (err) {
+                alert("Erro de conexão.");
+            }
+        }
+
+        // Carregar dados ao abrir
+        carregarDadosAdmin();
+    </script>
+</body>
+</html>

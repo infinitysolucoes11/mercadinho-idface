@@ -3,30 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro - Mercadinho</title>
+    <title>Micro Market - Cadastro e Benefícios</title>
     <style>
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #f0f2f5; margin: 0; padding: 20px 0; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+        :root {
+            --cor-principal: #ff6600; /* Laranja Micro Market */
+            --cor-fundo: #121212;     /* Preto moderno */
+            --cor-card: #1e1e1e;
+            --cor-texto: #ffffff;
+            --cor-cinza: #b0b0b0;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+            background-color: var(--cor-fundo); 
+            color: var(--cor-texto);
+            margin: 0; 
+            padding: 20px 0; 
+        }
+
+        .card { 
+            background: var(--cor-card); 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0 8px 24px rgba(255, 102, 0, 0.15); 
+            width: 100%; 
+            max-width: 420px; 
+            text-align: center; 
+            border: 1px solid #333;
+        }
         
         .logo-container {
-            width: 100px;
-            height: 100px;
-            background-color: #e9ecef;
-            border: 2px dashed #ced4da;
-            border-radius: 10px;
+            width: 90px;
+            height: 90px;
+            background-color: #2a2a2a;
+            border: 2px dashed var(--cor-principal);
+            border-radius: 50%;
             margin: 0 auto 15px auto;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: #6c757d;
-            font-size: 12px;
+            color: var(--cor-principal);
+            font-size: 11px;
             font-weight: bold;
         }
-        .logo-container span { font-size: 24px; margin-bottom: 2px; }
+        .logo-container span { font-size: 26px; margin-bottom: 2px; }
 
-        input { width: 90%; padding: 10px; margin: 6px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        h2 { color: var(--cor-principal); margin-bottom: 15px; }
         
+        input { 
+            width: 90%; 
+            padding: 12px; 
+            margin: 6px 0; 
+            background-color: #2a2a2a;
+            border: 1px solid #444; 
+            color: white;
+            border-radius: 6px; 
+            font-size: 14px; 
+        }
+        input:focus { border-color: var(--cor-principal); outline: none; }
+
         .camera-box {
             position: relative;
             width: 100%;
@@ -42,22 +82,47 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 160px;
-            height: 220px;
-            border: 3px dashed #00ffcc;
+            width: 150px;
+            height: 200px;
+            border: 3px dashed var(--cor-principal);
             border-radius: 50% / 60%;
             pointer-events: none;
         }
 
-        button { width: 95%; padding: 12px; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        .btn-verde { background-color: #28a745; }
-        .btn-verde:hover { background-color: #218838; }
+        button { width: 95%; padding: 12px; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 12px; transition: 0.2s; }
+        .btn-laranja { background-color: var(--cor-principal); color: #000; }
+        .btn-laranja:hover { background-color: #e05b00; }
         .btn-azul { background-color: #007bff; }
         .btn-azul:hover { background-color: #0056b3; }
         .btn-vermelho { background-color: #dc3545; }
         .btn-vermelho:hover { background-color: #c82333; }
-        .btn-cinza { background-color: #6c757d; }
-        .btn-cinza:hover { background-color: #5a6268; }
+        .btn-cinza { background-color: #444; color: #fff; }
+        .btn-cinza:hover { background-color: #555; }
+
+        /* Estilos da Nova Tela (Dashboard do Cliente) */
+        .dashboard-box { text-align: left; }
+        .welcome-msg { font-size: 18px; color: var(--cor-principal); font-weight: bold; margin-bottom: 15px; text-align: center; }
+        
+        .section-title { font-size: 14px; font-weight: bold; color: var(--cor-cinza); margin: 15px 0 8px 0; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 4px; }
+        
+        .lojas-list { max-height: 140px; overflow-y: auto; font-size: 13px; background: #252525; padding: 8px; border-radius: 6px; }
+        .loja-item { margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 6px; }
+        .loja-item strong { color: var(--cor-principal); }
+
+        .ads-space {
+            width: 100%;
+            height: 80px;
+            background: #252525;
+            border: 2px dashed #444;
+            border-radius: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--cor-cinza);
+            font-size: 12px;
+            text-align: center;
+            margin-top: 5px;
+        }
 
         .spinner {
             display: inline-block;
@@ -65,24 +130,22 @@
             height: 16px;
             border: 3px solid rgba(255,255,255,0.3);
             border-radius: 50%;
-            border-top-color: #fff;
+            border-top-color: #000;
             animation: spin 1s ease-in-out infinite;
             margin-right: 8px;
             vertical-align: middle;
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div class="card">
         <div class="logo-container">
             <span>🛒</span>
-            LOGO DO MERCADINHO
+            MICRO MARKET
         </div>
 
-        <!-- TELA DE CADASTRO -->
+        <!-- TELA 1: CADASTRO -->
         <div id="telaCadastro">
             <h2>Cadastro de Cliente</h2>
             <input type="text" id="nome" placeholder="Nome Completo *" required>
@@ -101,21 +164,47 @@
                 <canvas id="canvas" style="display:none;"></canvas>
             </div>
 
-            <button id="btnCapturar" class="btn-verde" onclick="tirarFoto()">Capturar Foto</button>
+            <button id="btnCapturar" class="btn-laranja" onclick="tirarFoto()">Capturar Foto</button>
             <button id="btnSalvar" class="btn-azul" onclick="cadastrar()" style="display:none;">Finalizar Cadastro</button>
-            <button class="btn-vermelho" onclick="irParaTelaExclusao()">Excluir Cadastro</button>
-            <p id="statusCadastro" style="font-weight: bold; margin-top: 10px;"></p>
+            <button class="btn-vermelho" onclick="irParaTelaExclusao()" style="margin-top: 15px;">Excluir Cadastro</button>
+            <p id="statusCadastro" style="font-weight: bold; margin-top: 10px; font-size: 14px;"></p>
         </div>
 
-        <!-- TELA DE EXCLUSÃO -->
+        <!-- TELA 2: DASHBOARD / PAINEL DO CLIENTE LOGADO -->
+        <div id="telaDashboard" class="dashboard-box" style="display: none;">
+            <div class="welcome-msg" id="msgBoasVindas">Olá, Cliente!</div>
+            <p style="font-size: 13px; text-align: center; color: var(--cor-cinza); margin-top: -10px;">Seu cadastro foi realizado com sucesso!</p>
+
+            <div class="section-title">📍 Nossos Pontos de Mercadinhos</div>
+            <div class="lojas-list">
+                <div class="loja-item">
+                    <strong>Micro Market - Unidade Centro</strong><br>
+                    <span>Endereço em breve...</span>
+                </div>
+                <div class="loja-item">
+                    <strong>Micro Market - Unidade Norte</strong><br>
+                    <span>Endereço em breve...</span>
+                </div>
+            </div>
+
+            <div class="section-title">📢 Espaço Publicitário</div>
+            <div class="ads-space">
+                Anuncie sua marca aqui!<br>Parceiros Micro Market
+            </div>
+
+            <button class="btn-vermelho" onclick="irParaTelaExclusao()" style="margin-top: 20px;">Excluir meu Cadastro</button>
+            <button class="btn-cinza" onclick="location.reload()" style="margin-top: 8px;">Sair / Voltar ao Início</button>
+        </div>
+
+        <!-- TELA 3: EXCLUSÃO -->
         <div id="telaExclusao" style="display: none;">
             <h2>Excluir Cadastro</h2>
-            <p style="font-size: 14px; color: #666;">Digite o CPF do cliente que deseja remover do sistema:</p>
+            <p style="font-size: 13px; color: var(--cor-cinza);">Digite o seu CPF para confirmar a exclusão do sistema:</p>
             <input type="text" id="cpfExcluir" placeholder="Digite o CPF *" required>
             
             <button class="btn-vermelho" onclick="executarExclusao()">Confirmar Exclusão</button>
             <button class="btn-cinza" onclick="voltarParaCadastro()">Voltar</button>
-            <p id="statusExclusao" style="font-weight: bold; margin-top: 10px;"></p>
+            <p id="statusExclusao" style="font-weight: bold; margin-top: 10px; font-size: 14px;"></p>
         </div>
     </div>
 
@@ -155,11 +244,13 @@
 
         function irParaTelaExclusao() {
             document.getElementById('telaCadastro').style.display = 'none';
+            document.getElementById('telaDashboard').style.display = 'none';
             document.getElementById('telaExclusao').style.display = 'block';
         }
 
         function voltarParaCadastro() {
             document.getElementById('telaExclusao').style.display = 'none';
+            document.getElementById('telaDashboard').style.display = 'none';
             document.getElementById('telaCadastro').style.display = 'block';
         }
 
@@ -192,8 +283,10 @@
 
                 const dados = await resposta.json();
                 if (dados.sucesso) {
-                    status.innerText = "Cadastro realizado com sucesso!";
-                    setTimeout(() => location.reload(), 2000);
+                    // Transição suave para a nova aba/dashboard com o nome do cliente
+                    document.getElementById('msgBoasVindas').innerText = `Olá, ${nome}!`;
+                    document.getElementById('telaCadastro').style.display = 'none';
+                    document.getElementById('telaDashboard').style.display = 'block';
                 } else {
                     status.innerText = "Erro: " + dados.erro;
                     document.getElementById('btnSalvar').disabled = false;
@@ -226,7 +319,7 @@
                 if (dados.sucesso) {
                     status.innerText = dados.mensagem;
                     setTimeout(() => {
-                        location.reload(); // Retorna para a tela inicial de cadastro
+                        location.reload(); 
                     }, 2000);
                 } else {
                     status.innerText = "Erro: " + dados.erro;
@@ -236,5 +329,7 @@
             }
         }
     </script>
-</body>
+<div style="text-align: center; margin-top: 20px; border-top: 1px solid #333; padding-top: 10px;">
+    <a href="/admin.html" style="color: #777; font-size: 11px; text-decoration: none;">🔒 Acesso do Administrador</a>
+</div></body>
 </html>
