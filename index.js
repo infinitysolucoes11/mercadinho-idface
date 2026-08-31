@@ -144,19 +144,34 @@ app.post('/api/admin/deletar-funcionario', (req, res) => {
     });
 });
 
-// Rota para receber o evento de acesso disparado pelo iDFace
+// Rota para receber apenas acessos autorizados do iDFace (com a variável 'autorizado' corrigida)
 app.post('/api/controlid/webhook', (req, res) => {
     const dadosAcesso = req.body;
     
-    // O iDFace envia os dados do usuário reconhecido
-    const cpfOuMatricula = dadosAcesso.user_id || dadosAcesso.register || "Desconhecido"; 
-    const nomeCondominio = "Micro Market - Unidade Teste"; 
+    let cpfOuMatricula = "Desconhecido";
+    let autorizado = false;
+    
+    if (dadosAcesso.object_changes && dadosAcesso.object_changes.length > 0) {
+        const log = dadosAcesso.object_changes.find(item => item.object === 'access_logs');
+        if (log && log.values) {
+            cpfOuMatricula = log.values.user_id || log.values.identifier_id || "Desconhecido";
+            // Variável corrigida corretamente para "autorizado"
+            autorizado = log.values.authorized === true || log.values.result === 1;
+        }
+    }
 
-    // Salva no histórico que aparece no seu painel admin.html
+    // Se NÃO for autorizado, o sistema apenas responde OK para a leitora e não salva no painel
+    if (!autorizado) {
+        return res.json({ sucesso: true, acao: "ignorado" });
+    }
+
+    const nomeCondominio = "Micro Market - Unidade Remota"; 
+
+    // Salva no histórico do admin.html apenas quem entrou com sucesso
     db.run(`INSERT INTO historico_acessos (cpf_cliente, nome_condominio) VALUES (?, ?)`, 
         [cpfOuMatricula, nomeCondominio], (err) => {
             if (err) return res.status(500).json({ sucesso: false, erro: err.message });
-            res.json({ sucesso: true, acao: "liberado" });
+            res.json({ sucesso: true, acao: "registrado" });
         }
     );
 });
