@@ -17,6 +17,37 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
+// Função para atualizar a estrutura do banco automaticamente ao iniciar o servidor
+async function configurarBancoDeDados() {
+  try {
+    // Garante que a tabela base de usuários existe
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS usuarios (
+        id SERIAL PRIMARY KEY,
+        nome VARCHAR(100),
+        email VARCHAR(100) UNIQUE,
+        telefone VARCHAR(20)
+      );
+    `);
+
+    // Adiciona as colunas de segurança e verificação se não existirem
+    await pool.query(`
+      ALTER TABLE usuarios 
+      ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'pendente',
+      ADD COLUMN IF NOT EXISTS email_verificado BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS telefone_verificado BOOLEAN DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS codigo_verificacao VARCHAR(6);
+    `);
+
+    console.log('Tabela e colunas de verificação configuradas com sucesso no PostgreSQL!');
+  } catch (err) {
+    console.error('Erro ao configurar o banco de dados:', err);
+  }
+}
+
+// Executa a configuração assim que o servidor conecta
+configurarBancoDeDados();
+
 // Porta dinâmica obrigatória exigida pelo ambiente do Render
 const PORT = process.env.PORT || 3000;
 
