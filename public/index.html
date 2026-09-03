@@ -352,7 +352,7 @@
             </h3>
             <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0;">Preencha seus dados para habilitar o acesso facial.</p>
 
-            <form onsubmit="avancarParaCamera(event)" style="margin-top: 10px;">
+            <form onsubmit="avancarParaVerificacao(event)" style="margin-top: 10px;">
                 <div class="form-group">
                     <label>Nome Completo</label>
                     <input type="text" id="cadNome" class="form-control" placeholder="Ex: Carlos Alberto da Silva" required>
@@ -380,8 +380,29 @@
                     </select>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="margin-top: 15px;">Avançar para Captura Facial <i class="fa-solid fa-arrow-right"></i></button>
+                <button type="submit" class="btn btn-primary" style="margin-top: 15px;">Avançar para Verificação <i class="fa-solid fa-arrow-right"></i></button>
                 <button type="button" class="btn btn-secondary" onclick="mudarTela('viewInicio')">Cancelar</button>
+            </form>
+        </div>
+
+        <!-- ================= TELA 3.5: VALIDAÇÃO DE E-MAIL E WHATSAPP ================= -->
+        <div id="viewVerificacaoContato" class="view-section">
+            <h3 style="margin-top: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i> Validação de Contato
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0;">Enviamos um código de confirmação para o seu e-mail e WhatsApp informados.</p>
+
+            <div style="background: #f1f5f9; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.85rem; text-align: center;">
+                <b>Código de Simulação:</b> <span id="codigoSimuladoDisplay" style="color: var(--primary); font-size: 1.1rem; font-weight: bold; letter-spacing: 2px;">1234</span>
+            </div>
+
+            <form onsubmit="validarCodigoContato(event)">
+                <div class="form-group">
+                    <label>Digite o Código de 4 Dígitos</label>
+                    <input type="text" id="inputCodigoValidacao" class="form-control" placeholder="Ex: 1234" maxlength="4" style="text-align: center; font-size: 1.2rem; letter-spacing: 4px;" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 15px;">Confirmar e Ir para Câmera <i class="fa-solid fa-check"></i></button>
+                <button type="button" class="btn btn-secondary" onclick="mudarTela('viewCadastroDados')">Voltar</button>
             </form>
         </div>
 
@@ -488,6 +509,7 @@
         let fotoBase64Capturada = "";
         let dadosTempCadastro = {};
         let moradorLogadoAtual = null;
+        let codigoVerificacaoGerado = "1234";
 
         // Inicialização ao carregar a página
         window.addEventListener('DOMContentLoaded', () => {
@@ -546,8 +568,8 @@
             mudarTela('viewCadastroDados');
         }
 
-        // Avança da tela de dados para a câmera
-        function avancarParaCamera(e) {
+        // Avança da tela de dados para a etapa de verificação de contato
+        function avancarParaVerificacao(e) {
             e.preventDefault();
             dadosTempCadastro = {
                 nome: document.getElementById('cadNome').value.trim(),
@@ -559,6 +581,24 @@
                 statusFacial: 'liberado',
                 dataCadastro: new Date().toISOString()
             };
+
+            // Gera um código randômico de 4 dígitos para validação
+            codigoVerificacaoGerado = Math.floor(1000 + Math.random() * 9000).toString();
+            document.getElementById('codigoSimuladoDisplay').textContent = codigoVerificacaoGerado;
+            document.getElementById('inputCodigoValidacao').value = '';
+
+            mudarTela('viewVerificacaoContato');
+        }
+
+        // Valida o código digitado antes de ir para a câmera
+        function validarCodigoContato(e) {
+            e.preventDefault();
+            const digitado = document.getElementById('inputCodigoValidacao').value.trim();
+
+            if (digitado !== codigoVerificacaoGerado) {
+                alert("Código de verificação incorreto. Tente novamente.");
+                return;
+            }
 
             mudarTela('viewCadastroCamera');
             iniciarCameraFrontal();
@@ -620,7 +660,6 @@
 
             pararCamera();
 
-            // Habilita concluir se o checkbox da LGPD estiver marcado
             verificarLiberacaoConclusao();
         }
 
@@ -657,7 +696,6 @@
 
             let moradores = JSON.parse(localStorage.getItem('moradores_mercadinho') || '[]');
             
-            // Verifica se CPF já existe
             if(moradores.some(m => m.cpf === dadosTempCadastro.cpf)) {
                 alert("Já existe um cadastro com este CPF. Tente fazer login.");
                 mudarTela('viewLogin');
@@ -667,7 +705,6 @@
             moradores.push(dadosTempCadastro);
             localStorage.setItem('moradores_mercadinho', JSON.stringify(moradores));
 
-            // Salva sessão ativa
             localStorage.setItem('morador_logado_email', dadosTempCadastro.email);
             moradorLogadoAtual = dadosTempCadastro;
 
@@ -717,7 +754,6 @@
             mudarTela('viewInicio');
         }
 
-        // Sugestões
         function abrirModalSugestao() { document.getElementById('modalSugestao').style.display = 'flex'; }
         function fecharModalSugestao() { document.getElementById('modalSugestao').style.display = 'none'; }
 
@@ -740,7 +776,6 @@
             alert("Sugestão enviada com sucesso para o painel do administrador!");
         }
 
-        // Simular Acesso na Catraca
         function simularAbrirCatraca() {
             if(!moradorLogadoAtual) return;
             
@@ -755,7 +790,6 @@
             alert("Acesso facial reconhecido! Catraca aberta com sucesso.");
         }
 
-        // Excluir Conta
         function confirmarExclusaoConta() {
             if(confirm("ATENÇÃO: Deseja realmente excluir permanentemente sua conta e remover seus dados faciais da leitora?")) {
                 if(!moradorLogadoAtual) return;
