@@ -3,382 +3,767 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Micro Market - Acesso do Cliente</title>
+    <title>Mercadinho Autônomo - Acesso do Morador</title>
+    <!-- FontAwesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            --cor-principal: #ff6600;
-            --cor-fundo: #121212;
-            --cor-card: #1e1e1e;
-            --cor-texto: #ffffff;
-            --cor-cinza: #b0b0b0;
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #22c55e;
         }
 
-        body { 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            background-color: var(--cor-fundo); 
-            color: var(--cor-texto);
-            margin: 0; 
-            padding: 20px 0; 
-        }
-
-        .card { 
-            background: var(--cor-card); 
-            padding: 25px; 
-            border-radius: 12px; 
-            box-shadow: 0 8px 24px rgba(255, 102, 0, 0.15); 
-            width: 100%; 
-            max-width: 420px; 
-            text-align: center; 
-            border: 1px solid #333;
-        }
-        
-        .logo-container {
-            width: 80px;
-            height: 80px;
-            background-color: #2a2a2a;
-            border: 2px dashed var(--cor-principal);
-            border-radius: 50%;
-            margin: 0 auto 15px auto;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: var(--cor-principal);
-            font-size: 10px;
-            font-weight: bold;
-        }
-        .logo-container span { font-size: 24px; margin-bottom: 2px; }
-
-        h2 { color: var(--cor-principal); margin-bottom: 15px; }
-        
-        input, select { 
-            width: 90%; 
-            padding: 12px; 
-            margin: 6px 0; 
-            background-color: #2a2a2a;
-            border: 1px solid #444; 
-            color: white;
-            border-radius: 6px; 
-            font-size: 14px; 
+        *, *::before, *::after {
             box-sizing: border-box;
         }
-        input:focus, select:focus { border-color: var(--cor-principal); outline: none; }
 
-        .camera-box {
-            position: relative;
-            width: 100%;
-            margin-top: 10px;
-            border-radius: 8px;
-            overflow: hidden;
-            background: #000;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
         }
-        video, canvas { width: 100%; display: block; border-radius: 8px; }
-        
-        .face-mask {
+
+        .container-app {
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: var(--card-bg);
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* HEADER / TOPO */
+        .app-header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .app-logo {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255,255,255,0.9);
+            background: white;
+            margin: 0 auto 10px auto;
+            display: block;
+        }
+        .app-title {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+        }
+
+        .view-section {
+            display: none;
+            padding: 20px;
+            flex: 1;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .view-section.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* FORMULÁRIOS E BOTÕES */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 5px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: #fff;
+            color: var(--text-main);
+        }
+        .form-control:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-secondary {
+            background: #f1f5f9;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            margin-top: 10px;
+        }
+        .btn-secondary:hover { background: #e2e8f0; }
+
+        /* LGPD BOX */
+        .lgpd-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            max-height: 110px;
+            overflow-y: auto;
+            margin: 10px 0;
+            line-height: 1.4;
+            text-align: left;
+        }
+        .lgpd-check {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 0.82rem;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            text-align: left;
+            cursor: pointer;
+        }
+        .lgpd-check input { margin-top: 2px; }
+
+        /* CÂMERA E SELFIE */
+        .camera-container {
+            width: 100%;
+            background: #0f172a;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+            aspect-ratio: 3/4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        #videoCam {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        #canvasFoto {
+            display: none;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .camera-overlay-msg {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 140px;
-            height: 180px;
-            border: 3px dashed var(--cor-principal);
-            border-radius: 50% / 60%;
+            bottom: 15px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
             pointer-events: none;
         }
 
-        button { width: 95%; padding: 12px; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 12px; transition: 0.2s; }
-        .btn-laranja { background-color: var(--cor-principal); color: #000; }
-        .btn-laranja:hover { background-color: #e05b00; }
-        .btn-azul { background-color: #007bff; color: white; }
-        .btn-azul:hover { background-color: #0056b3; }
-        .btn-vermelho { background-color: #dc3545; color: white; }
-        .btn-vermelho:hover { background-color: #c82333; }
-        .btn-cinza { background-color: #444; color: #fff; }
-        .btn-cinza:hover { background-color: #555; }
-        
-        .link-text { color: var(--cor-principal); cursor: pointer; font-size: 13px; margin-top: 12px; display: inline-block; text-decoration: underline; }
-
-        /* Dashboard Pós-Login */
-        .dashboard-box { text-align: left; }
-        .welcome-msg { font-size: 18px; color: var(--cor-principal); font-weight: bold; margin-bottom: 10px; text-align: center; }
-        .section-title { font-size: 13px; font-weight: bold; color: var(--cor-cinza); margin: 15px 0 6px 0; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 4px; }
-        
-        .lojas-list { max-height: 120px; overflow-y: auto; font-size: 13px; background: #252525; padding: 8px; border-radius: 6px; }
-        .loja-item { margin-bottom: 6px; border-bottom: 1px solid #333; padding-bottom: 4px; }
-        .loja-item strong { color: var(--cor-principal); }
-
-        .ads-space {
+        /* PAINEL INTERNO DO MORADOR */
+        .vitrine-banner {
             width: 100%;
-            height: 75px;
-            background: #252525;
-            border: 2px dashed #444;
-            border-radius: 6px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            background: #e2e8f0;
             display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        .ofertas-card {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .ofertas-card h4 {
+            margin: 0 0 8px 0;
+            color: #166534;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.95rem;
+        }
+        .ofertas-card p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: #15803d;
+            white-space: pre-line;
+            line-height: 1.4;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .menu-tile {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .menu-tile:hover {
+            border-color: var(--primary);
+            background: #f0f9ff;
+        }
+        .menu-tile i {
+            font-size: 1.6rem;
+            color: var(--primary);
+            margin-bottom: 8px;
+            display: block;
+        }
+        .menu-tile span {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        /* MODAL DE SUGESTÕES */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
             justify-content: center;
             align-items: center;
-            color: var(--cor-cinza);
-            font-size: 12px;
-            text-align: center;
-            margin-top: 5px;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         }
 
-        .spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: #000;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 8px;
-            vertical-align: middle;
+        .welcome-box {
+            text-align: center;
+            margin-bottom: 25px;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .welcome-box h2 { margin: 0 0 5px 0; font-size: 1.2rem; }
+        .welcome-box p { margin: 0; color: var(--text-muted); font-size: 0.85rem; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <div class="logo-container">
-            <span>🛒</span>
-            MICRO MARKET
+
+    <div class="container-app">
+        
+        <!-- TOPO GLOBAL -->
+        <div class="app-header">
+            <img id="logoTopo" src="" class="app-logo" alt="Logo" style="display: none;">
+            <h1 id="nomeTopo" class="app-title">Mercadinho Autônomo</h1>
         </div>
 
-        <!-- TELA 1: LOGIN DO CLIENTE -->
-        <div id="telaLogin">
-            <h2>Entrar no Sistema</h2>
-            <input type="text" id="loginCpf" placeholder="Digite seu CPF">
-            <input type="password" id="loginSenha" placeholder="Digite sua Senha">
-            <button class="btn-laranja" onclick="fazerLogin()">Entrar</button>
-            <span class="link-text" onclick="mudarParaTela('telaCadastro')">Não tem cadastro? Cadastre-se aqui</span>
-            <p id="statusLogin" style="font-weight: bold; margin-top: 10px; font-size: 13px;"></p>
-        </div>
-
-        <!-- TELA 2: CADASTRO DO CLIENTE -->
-        <div id="telaCadastro" style="display: none;">
-            <h2>Novo Cadastro</h2>
-            <input type="text" id="nome" placeholder="Nome Completo *" required>
-            <input type="text" id="cpf" placeholder="CPF *" required>
-            <input type="password" id="senha" placeholder="Crie uma Senha *" required>
-            <input type="tel" id="telefone" placeholder="Telefone / WhatsApp">
-            <input type="email" id="email" placeholder="E-mail">
-            <input type="text" id="rua" placeholder="Rua / Logradouro">
-            <input type="text" id="bairro" placeholder="Bairro">
-            <input type="text" id="cidade" placeholder="Cidade">
-            <input type="text" id="estado" placeholder="Estado (Ex: SP)">
-            <input type="text" id="pais" placeholder="País" value="Brasil">
-            
-            <select id="unidade_id" required>
-                <option value="">Carregando unidades...</option>
-            </select>
-            
-            <div class="camera-box">
-                <video id="video" autoplay playsinline></video>
-                <div id="mask" class="face-mask"></div>
-                <canvas id="canvas" style="display:none;"></canvas>
+        <!-- ================= TELA 1: ESCOLHA (LOGIN OU CADASTRO) ================= -->
+        <div id="viewInicio" class="view-section active" style="justify-content: center; text-align: center;">
+            <div style="margin: 30px 0;">
+                <i class="fa-solid fa-basket-shopping" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
+                <h2 style="margin: 0 0 8px 0; font-size: 1.4rem;">Bem-vindo ao Mercadinho</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0;">Seu mercado autônomo de condomínio 24 horas por dia.</p>
             </div>
 
-            <button id="btnCapturar" class="btn-laranja" onclick="tirarFoto()">Capturar Foto</button>
-            <button id="btnSalvar" class="btn-azul" onclick="cadastrar()" style="display:none;">Finalizar Cadastro</button>
-            <span class="link-text" onclick="mudarParaTela('telaLogin')">Já possui cadastro? Faça login</span>
-            <p id="statusCadastro" style="font-weight: bold; margin-top: 10px; font-size: 13px;"></p>
+            <button class="btn btn-primary" onclick="mudarTela('viewLogin')" style="padding: 14px; margin-bottom: 12px;">
+                <i class="fa-solid fa-right-to-bracket"></i> Fazer Login
+            </button>
+            <button class="btn btn-secondary" onclick="iniciarCadastro()" style="padding: 14px; margin-top: 0;">
+                <i class="fa-solid fa-user-plus"></i> Criar Novo Cadastro
+            </button>
         </div>
 
-        <!-- TELA 3: PAINEL / DASHBOARD DO CLIENTE LOGADO -->
-        <div id="telaDashboard" class="dashboard-box" style="display: none;">
-            <div class="welcome-msg" id="msgBoasVindas">Olá, Cliente!</div>
-            <p style="font-size: 12px; text-align: center; color: var(--cor-cinza); margin-top: -6px;">Bem-vindo ao Micro Market</p>
+        <!-- ================= TELA 2: LOGIN DO MORADOR ================= -->
+        <div id="viewLogin" class="view-section">
+            <h3 style="margin-top: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-lock" style="color: var(--primary);"></i> Acessar com E-mail e Senha
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0;">Entre para ver as ofertas e liberar seu acesso.</p>
 
-            <div class="section-title">📍 Nossos Pontos de Mercadinhos</div>
-            <div class="lojas-list">
-                <div class="loja-item">
-                    <strong>Carregando unidades...</strong><br>
-                    <span>Aguarde...</span>
+            <form onsubmit="realizarLoginMorador(event)" style="margin-top: 15px;">
+                <div class="form-group">
+                    <label>E-mail Cadastrado</label>
+                    <input type="email" id="loginEmail" class="form-control" placeholder="seu.email@exemplo.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha de Acesso</label>
+                    <input type="password" id="loginSenha" class="form-control" placeholder="Sua senha secreta" required>
+                </div>
+                <button type="submit" class="btn btn-primary" style="margin-top: 20px;">Entrar no Sistema</button>
+                <button type="button" class="btn btn-secondary" onclick="mudarTela('viewInicio')">Voltar</button>
+            </form>
+        </div>
+
+        <!-- ================= TELA 3: CADASTRO - ETAPA 1 (DADOS) ================= -->
+        <div id="viewCadastroDados" class="view-section">
+            <h3 style="margin-top: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-id-card" style="color: var(--primary);"></i> Cadastro de Morador
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0;">Preencha seus dados para habilitar o acesso facial.</p>
+
+            <form onsubmit="avancarParaCamera(event)" style="margin-top: 10px;">
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <input type="text" id="cadNome" class="form-control" placeholder="Ex: Carlos Alberto da Silva" required>
+                </div>
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="cadEmail" class="form-control" placeholder="seu.email@exemplo.com" required>
+                </div>
+                <div class="form-group">
+                    <label>WhatsApp / Telefone</label>
+                    <input type="text" id="cadWhatsapp" class="form-control" placeholder="(00) 90000-0000" required>
+                </div>
+                <div class="form-group">
+                    <label>CPF (Utilizado para identificação na leitora)</label>
+                    <input type="text" id="cadCpf" class="form-control" placeholder="000.000.000-00" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha</label>
+                    <input type="password" id="cadSenha" class="form-control" placeholder="Crie uma senha segura" required>
+                </div>
+                <div class="form-group">
+                    <label>Selecione seu Condomínio</label>
+                    <select id="cadCondominio" class="form-control" required>
+                        <option value="">Carregando condomínios...</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 15px;">Avançar para Captura Facial <i class="fa-solid fa-arrow-right"></i></button>
+                <button type="button" class="btn btn-secondary" onclick="mudarTela('viewInicio')">Cancelar</button>
+            </form>
+        </div>
+
+        <!-- ================= TELA 4: CADASTRO - ETAPA 2 (CÂMERA / LGPD) ================= -->
+        <div id="viewCadastroCamera" class="view-section">
+            <h3 style="margin-top: 0; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-camera" style="color: var(--primary);"></i> Reconhecimento Facial
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0;">Posicione seu rosto centralizado para tirar a selfie de acesso.</p>
+
+            <div class="camera-container">
+                <video id="videoCam" autoplay playsinline></video>
+                <canvas id="canvasFoto"></canvas>
+                <div class="camera-overlay-msg" id="msgCamera">Alinhe o rosto no centro</div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button type="button" id="btnTirarFoto" class="btn btn-primary" onclick="tirarSelfie()"><i class="fa-solid fa-camera-retro"></i> Tirar Selfie</button>
+                <button type="button" id="btnRefazerFoto" class="btn btn-secondary" onclick="refazerSelfie()" style="display:none; margin-top: 0;"><i class="fa-solid fa-rotate-right"></i> Tirar Outra</button>
+            </div>
+
+            <!-- Termos LGPD Jurídicos Adequados -->
+            <div style="text-align: left;">
+                <label style="font-size: 0.8rem; font-weight: 600; color: var(--text-main);">Termo de Consentimento para Tratamento de Dados (LGPD):</label>
+                <div class="lgpd-box">
+                    <b>TERMO DE CONSENTIMENTO - LEI Nº 13.709/18 (LGPD):</b><br>
+                    Declaro, para os devidos fins, que autorizo expressamente o tratamento dos meus dados pessoais e de imagem facial coletados neste cadastro. Os dados e a fotografia serão armazenados com estrita finalidade de segurança, validação de acesso e controle de entrada nas dependências do mercadinho autônomo do meu condomínio. O titular possui pleno direito de revogação do consentimento, bloqueio ou exclusão dos dados a qualquer momento mediante solicitação direta no painel do usuário.
                 </div>
             </div>
 
-            <div class="section-title">📢 Espaço Publicitário</div>
-            <div class="ads-space">
-                Anuncie sua marca aqui!<br>Parceiros Micro Market
+            <div class="lgpd-check">
+                <input type="checkbox" id="checkLgpdMorador" required>
+                <label for="checkLgpdMorador">Li e concordo com os termos de privacidade e uso da imagem para fins de segurança e acesso.</label>
             </div>
 
-            <button class="btn-vermelho" onclick="excluirProprioCadastro()" style="margin-top: 15px;">Excluir meu Cadastro</button>
-            <button class="btn-cinza" onclick="location.reload()" style="margin-top: 6px;">Sair / Desconectar</button>
+            <button type="button" id="btnConcluirCadastro" class="btn btn-primary" onclick="concluirCadastroMorador()" disabled style="opacity: 0.6; cursor: not-allowed;">
+                <i class="fa-solid fa-check-circle"></i> Concluir Cadastro e Enviar para Leitora
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="pararCameraESair('viewCadastroDados')">Voltar</button>
+        </div>
+
+        <!-- ================= TELA 5: PAINEL INTERNO DO MORADOR (VITRINE) ================= -->
+        <div id="viewPainelMorador" class="view-section">
+            <div class="welcome-box">
+                <h2 id="moradorNomeOla">Olá, Morador</h2>
+                <p id="moradorCondominioLabel">Condomínio</p>
+            </div>
+
+            <!-- Banner Personalizado do Espelho -->
+            <div id="bannerVitrineContainer" class="vitrine-banner">
+                <i class="fa-solid fa-image" style="font-size: 2rem; margin-right: 8px;"></i> Banner Promocional
+            </div>
+
+            <!-- Card de Ofertas em Destaque -->
+            <div class="ofertas-card">
+                <h4><i class="fa-solid fa-bullhorn"></i> Ofertas e Avisos do Administrador</h4>
+                <p id="textoOfertasVitrine">Carregando ofertas da loja...</p>
+            </div>
+
+            <!-- Menu de Ações Rápidas -->
+            <div class="menu-grid">
+                <div class="menu-tile" onclick="abrirModalSugestao()">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    <span>Sugerir Produto</span>
+                </div>
+                <div class="menu-tile" onclick="simularAbrirCatraca()">
+                    <i class="fa-solid fa-door-open" style="color: var(--success);"></i>
+                    <span>Simular Acesso</span>
+                </div>
+                <div class="menu-tile" onclick="confirmarExclusaoConta()">
+                    <i class="fa-solid fa-user-slash" style="color: var(--danger);"></i>
+                    <span>Excluir Conta</span>
+                </div>
+                <div class="menu-tile" onclick="fazerLogoutMorador()">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Sair da Conta</span>
+                </div>
+            </div>
+
+            <button class="btn btn-secondary" onclick="fazerLogoutMorador()"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sair do Sistema</button>
+        </div>
+
+    </div>
+
+    <!-- Modal de Envio de Sugestão / Produto em Falta -->
+    <div id="modalSugestao" class="modal-overlay">
+        <div class="modal-card">
+            <h3 style="margin-top: 0; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-lightbulb"></i> Sugestão ou Produto em Falta
+            </h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Conte para o gestor quais produtos você gostaria de encontrar no mercadinho.</p>
+            
+            <textarea id="textoSugestaoMorador" class="form-control" rows="4" placeholder="Ex: Gostaria que tivesse leite condensado ou refrigerante zero..."></textarea>
+            
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn btn-primary" onclick="enviarSugestaoMorador()">Enviar Sugestão</button>
+                <button class="btn btn-secondary" onclick="fecharModalSugestao()" style="margin-top:0;">Cancelar</button>
+            </div>
         </div>
     </div>
 
     <script>
-        const video = document.getElementById('video');
-        const canvas = document.getElementById('canvas');
-        const mask = document.getElementById('mask');
-        let fotoData = '';
-        let cpfLogadoAtual = '';
+        let streamCamera = null;
+        let fotoBase64Capturada = "";
+        let dadosTempCadastro = {};
+        let moradorLogadoAtual = null;
 
-        // Carregar unidades ao iniciar a página
-        window.addEventListener('DOMContentLoaded', async () => {
-            try {
-                const res = await fetch('/api/unidades');
-                const unidades = await res.json();
-                
-                const select = document.getElementById('unidade_id');
-                const listaLojas = document.querySelector('.lojas-list');
-                
-                if (select && unidades.length > 0) {
-                    select.innerHTML = '<option value="">Selecione a Unidade / Condomínio *</option>';
-                    unidades.forEach(u => {
-                        select.innerHTML += `<option value="${u.id}">${u.nome_condominio}</option>`;
-                    });
-                }
-
-                if (listaLojas && unidades.length > 0) {
-                    listaLojas.innerHTML = '';
-                    unidades.forEach(u => {
-                        listaLojas.innerHTML += `
-                            <div class="loja-item">
-                                <strong>${u.nome_condominio}</strong><br>
-                                <span>Unidade ativa Micro Market</span>
-                            </div>`;
-                    });
-                }
-            } catch (err) {
-                console.log("Erro ao carregar unidades:", err);
-            }
+        // Inicialização ao carregar a página
+        window.addEventListener('DOMContentLoaded', () => {
+            carregarConfiguracoesClienteNoMorador();
+            carregarCondominiosNoSelect();
+            verificarSessaoMoradorAtiva();
         });
 
-        // Ativar câmera se a pessoa for para o cadastro
-        function iniciarCamera() {
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(stream => video.srcObject = stream)
-                .catch(err => console.log("Câmera indisponível: " + err));
-        }
-
-        function mudarParaTela(telaId) {
-            document.getElementById('telaLogin').style.display = 'none';
-            document.getElementById('telaCadastro').style.display = 'none';
-            document.getElementById('telaDashboard').style.display = 'none';
-            document.getElementById(telaId).style.display = 'block';
-
-            if (telaId === 'telaCadastro') {
-                iniciarCamera();
-            }
-        }
-
-        function tirarFoto() {
-            const context = canvas.getContext('2d');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        function carregarConfiguracoesClienteNoMorador() {
+            const cfg = JSON.parse(localStorage.getItem('config_loja_autonoma') || '{}');
             
-            fotoData = canvas.toDataURL('image/jpeg');
-            video.style.display = 'none';
-            mask.style.display = 'none';
-            canvas.style.display = 'block';
-            document.getElementById('btnCapturar').innerText = 'Tirar Outra Foto';
-            document.getElementById('btnCapturar').onclick = resetarFoto;
-            document.getElementById('btnSalvar').style.display = 'block';
+            if(cfg.nomeEmpresa) {
+                document.getElementById('nomeTopo').textContent = cfg.nomeEmpresa;
+                document.title = cfg.nomeEmpresa + " - Acesso do Morador";
+            }
+            if(cfg.logoUrl) {
+                const logo = document.getElementById('logoTopo');
+                logo.src = cfg.logoUrl;
+                logo.style.display = 'block';
+            }
+            if(cfg.corPrimaria) {
+                document.documentElement.style.setProperty('--primary', cfg.corPrimaria);
+            }
+            if(cfg.corSecundaria) {
+                document.documentElement.style.setProperty('--primary-dark', cfg.corSecundaria);
+            }
+
+            // Banner e Ofertas
+            const bannerC = document.getElementById('bannerVitrineContainer');
+            if(cfg.bannerTopo) {
+                bannerC.innerHTML = `<img src="${cfg.bannerTopo}" style="width:100%; height:100%; object-fit:cover; border-radius:12px;">`;
+            } else {
+                bannerC.innerHTML = `<i class="fa-solid fa-image" style="font-size: 2rem; margin-right: 8px;"></i> Mercadinho Autônomo 24h`;
+            }
+
+            const txtOfertas = document.getElementById('textoOfertasVitrine');
+            txtOfertas.textContent = cfg.ofertas || "Confira as novidades e reposições fresquinhas na nossa geladeira e prateleiras hoje!";
         }
 
-        function resetarFoto() {
+        function carregarCondominiosNoSelect() {
+            const condos = JSON.parse(localStorage.getItem('lista_condominios') || '["Residencial Parque Donatello", "Condomínio Bella Vista", "Edifício Horizon Tower"]');
+            const select = document.getElementById('cadCondominio');
+            select.innerHTML = '<option value="">Selecione o seu condomínio</option>';
+            condos.forEach(c => {
+                select.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+        }
+
+        function mudarTela(idView) {
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            document.getElementById(idView).classList.add('active');
+        }
+
+        function iniciarCadastro() {
+            pararCamera();
+            mudarTela('viewCadastroDados');
+        }
+
+        // Avança da tela de dados para a câmera
+        function avancarParaCamera(e) {
+            e.preventDefault();
+            dadosTempCadastro = {
+                nome: document.getElementById('cadNome').value.trim(),
+                email: document.getElementById('cadEmail').value.trim(),
+                whatsapp: document.getElementById('cadWhatsapp').value.trim(),
+                cpf: document.getElementById('cadCpf').value.trim(),
+                senha: document.getElementById('cadSenha').value.trim(),
+                condominio: document.getElementById('cadCondominio').value,
+                statusFacial: 'liberado',
+                dataCadastro: new Date().toISOString()
+            };
+
+            mudarTela('viewCadastroCamera');
+            iniciarCameraFrontal();
+        }
+
+        // Câmera do Dispositivo
+        async function iniciarCameraFrontal() {
+            const video = document.getElementById('videoCam');
+            const canvas = document.getElementById('canvasFoto');
             video.style.display = 'block';
-            mask.style.display = 'block';
             canvas.style.display = 'none';
-            document.getElementById('btnCapturar').innerText = 'Capturar Foto';
-            document.getElementById('btnCapturar').onclick = tirarFoto;
-            document.getElementById('btnSalvar').style.display = 'none';
+            document.getElementById('btnTirarFoto').style.display = 'flex';
+            document.getElementById('btnRefazerFoto').style.display = 'none';
+            document.getElementById('btnConcluirCadastro').disabled = true;
+            document.getElementById('btnConcluirCadastro').style.opacity = '0.6';
+            document.getElementById('btnConcluirCadastro').style.cursor = 'not-allowed';
+
+            try {
+                streamCamera = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'user', width: { ideal: 720 }, height: { ideal: 960 } }, 
+                    audio: false 
+                });
+                video.srcObject = streamCamera;
+            } catch (err) {
+                console.error("Erro ao acessar câmera:", err);
+                alert("Não foi possível acessar a câmera do seu dispositivo. Verifique as permissões do navegador.");
+            }
         }
 
-        async function fazerLogin() {
-            const cpf = document.getElementById('loginCpf').value;
-            const senha = document.getElementById('loginSenha').value;
-            const status = document.getElementById('statusLogin');
+        function pararCamera() {
+            if (streamCamera) {
+                streamCamera.getTracks().forEach(track => track.stop());
+                streamCamera = null;
+            }
+        }
 
-            if (!cpf || !senha) {
-                status.innerText = "Preencha CPF e senha!";
+        function pararCameraESair(viewDestino) {
+            pararCamera();
+            mudarTela(viewDestino);
+        }
+
+        function tirarSelfie() {
+            const video = document.getElementById('videoCam');
+            const canvas = document.getElementById('canvasFoto');
+            
+            canvas.width = video.videoWidth || 480;
+            canvas.height = video.videoHeight || 640;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            fotoBase64Capturada = canvas.toDataURL('image/jpeg', 0.85);
+
+            video.style.display = 'none';
+            canvas.style.display = 'block';
+
+            document.getElementById('btnTirarFoto').style.display = 'none';
+            document.getElementById('btnRefazerFoto').style.display = 'flex';
+            document.getElementById('msgCamera').textContent = "Selfie capturada com sucesso!";
+
+            pararCamera();
+
+            // Habilita concluir se o checkbox da LGPD estiver marcado
+            verificarLiberacaoConclusao();
+        }
+
+        function refazerSelfie() {
+            fotoBase64Capturada = "";
+            document.getElementById('msgCamera').textContent = "Alinhe o rosto no centro";
+            iniciarCameraFrontal();
+        }
+
+        document.getElementById('checkLgpdMorador').addEventListener('change', verificarLiberacaoConclusao);
+
+        function verificarLiberacaoConclusao() {
+            const lgpdOk = document.getElementById('checkLgpdMorador').checked;
+            const btnConcluir = document.getElementById('btnConcluirCadastro');
+            
+            if (lgpdOk && fotoBase64Capturada) {
+                btnConcluir.disabled = false;
+                btnConcluir.style.opacity = '1';
+                btnConcluir.style.cursor = 'pointer';
+            } else {
+                btnConcluir.disabled = true;
+                btnConcluir.style.opacity = '0.6';
+                btnConcluir.style.cursor = 'not-allowed';
+            }
+        }
+
+        function concluirCadastroMorador() {
+            if (!fotoBase64Capturada) {
+                alert("Você precisa tirar uma selfie para concluir o cadastro facial.");
                 return;
             }
 
-            try {
-                const res = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cpf, senha })
-                });
-                const dados = await res.json();
-                if (dados.sucesso) {
-                    cpfLogadoAtual = cpf;
-                    document.getElementById('msgBoasVindas').innerText = `Olá, ${dados.nome}!`;
-                    document.getElementById('telaLogin').style.display = 'none';
-                    document.getElementById('telaDashboard').style.display = 'block';
-                } else {
-                    status.innerText = dados.erro;
-                }
-            } catch (err) {
-                status.innerText = "Erro de conexão.";
-            }
-        }
+            dadosTempCadastro.foto = fotoBase64Capturada;
 
-        async function cadastrar() {
-            const nome = document.getElementById('nome').value;
-            const cpf = document.getElementById('cpf').value;
-            const senha = document.getElementById('senha').value;
-            const telefone = document.getElementById('telefone').value;
-            const email = document.getElementById('email').value;
-            const rua = document.getElementById('rua').value;
-            const bairro = document.getElementById('bairro').value;
-            const cidade = document.getElementById('cidade').value;
-            const estado = document.getElementById('estado').value;
-            const pais = document.getElementById('pais').value;
-            const unidade_id = document.getElementById('unidade_id').value;
-            const status = document.getElementById('statusCadastro');
-
-            if (!nome || !cpf || !senha || !fotoData || !unidade_id) {
-                alert("Preencha Nome, CPF, Senha, escolha a Unidade e tire a foto!");
+            let moradores = JSON.parse(localStorage.getItem('moradores_mercadinho') || '[]');
+            
+            // Verifica se CPF já existe
+            if(moradores.some(m => m.cpf === dadosTempCadastro.cpf)) {
+                alert("Já existe um cadastro com este CPF. Tente fazer login.");
+                mudarTela('viewLogin');
                 return;
             }
 
-            status.innerHTML = '<div class="spinner"></div> Cadastrando...';
+            moradores.push(dadosTempCadastro);
+            localStorage.setItem('moradores_mercadinho', JSON.stringify(moradores));
 
-            try {
-                const res = await fetch('/cadastrar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome, cpf, senha, telefone, email, rua, bairro, cidade, estado, pais, foto: fotoData, unidade_id })
-                });
-                const dados = await res.json();
-                if (dados.sucesso) {
-                    cpfLogadoAtual = cpf;
-                    document.getElementById('msgBoasVindas').innerText = `Olá, ${nome}!`;
-                    document.getElementById('telaCadastro').style.display = 'none';
-                    document.getElementById('telaDashboard').style.display = 'block';
-                } else {
-                    status.innerText = "Erro: " + dados.erro;
-                }
-            } catch (err) {
-                status.innerText = "Erro de conexão.";
+            // Salva sessão ativa
+            localStorage.setItem('morador_logado_email', dadosTempCadastro.email);
+            moradorLogadoAtual = dadosTempCadastro;
+
+            pararCamera();
+            alert("Cadastro realizado com sucesso! Sua foto facial foi enviada para a leitora do condomínio " + dadosTempCadastro.condominio + ".");
+            abrirPainelMorador(dadosTempCadastro);
+        }
+
+        function realizarLoginMorador(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const senha = document.getElementById('loginSenha').value.trim();
+
+            const moradores = JSON.parse(localStorage.getItem('moradores_mercadinho') || '[]');
+            const morador = moradores.find(m => m.email === email && m.senha === senha);
+
+            if(morador) {
+                localStorage.setItem('morador_logado_email', morador.email);
+                moradorLogadoAtual = morador;
+                abrirPainelMorador(morador);
+            } else {
+                alert("E-mail ou senha incorretos. Verifique seus dados ou crie um novo cadastro.");
             }
         }
 
-        async function excluirProprioCadastro() {
-            if (!confirm("Deseja realmente excluir seu cadastro?")) return;
-
-            try {
-                const res = await fetch('/deletar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ cpf: cpfLogadoAtual })
-                });
-                const dados = await res.json();
-                if (dados.sucesso) {
-                    alert("Conta excluída com sucesso.");
-                    location.reload();
-                } else {
-                    alert("Erro ao excluir.");
+        function verificarSessaoMoradorAtiva() {
+            const emailSalvo = localStorage.getItem('morador_logado_email');
+            if(emailSalvo) {
+                const moradores = JSON.parse(localStorage.getItem('moradores_mercadinho') || '[]');
+                const morador = moradores.find(m => m.email === emailSalvo);
+                if(morador) {
+                    moradorLogadoAtual = morador;
+                    abrirPainelMorador(morador);
                 }
-            } catch (err) {
-                alert("Erro de conexão.");
+            }
+        }
+
+        function abrirPainelMorador(morador) {
+            document.getElementById('moradorNomeOla').textContent = "Olá, " + morador.nome;
+            document.getElementById('moradorCondominioLabel').textContent = morador.condominio || "Condomínio Autorizado";
+            mudarTela('viewPainelMorador');
+        }
+
+        function fazerLogoutMorador() {
+            localStorage.removeItem('morador_logado_email');
+            moradorLogadoAtual = null;
+            mudarTela('viewInicio');
+        }
+
+        // Sugestões
+        function abrirModalSugestao() { document.getElementById('modalSugestao').style.display = 'flex'; }
+        function fecharModalSugestao() { document.getElementById('modalSugestao').style.display = 'none'; }
+
+        function enviarSugestaoMorador() {
+            const texto = document.getElementById('textoSugestaoMorador').value.trim();
+            if(!texto) {
+                alert("Escreva sua sugestão antes de enviar.");
+                return;
+            }
+
+            let sugestoes = JSON.parse(localStorage.getItem('sugestoes_moradores') || '[]');
+            sugestoes.push({
+                data: new Date().toLocaleString('pt-BR'),
+                texto: `[${moradorLogadoAtual ? moradorLogadoAtual.nome : 'Morador'}] ${texto}`
+            });
+            localStorage.setItem('sugestoes_moradores', JSON.stringify(sugestoes));
+
+            document.getElementById('textoSugestaoMorador').value = '';
+            fecharModalSugestao();
+            alert("Sugestão enviada com sucesso para o painel do administrador!");
+        }
+
+        // Simular Acesso na Catraca
+        function simularAbrirCatraca() {
+            if(!moradorLogadoAtual) return;
+            
+            let acessos = JSON.parse(localStorage.getItem('historico_acessos') || '[]');
+            acessos.push({
+                cpf: moradorLogadoAtual.cpf,
+                nome: moradorLogadoAtual.nome,
+                condominio: moradorLogadoAtual.condominio,
+                dataHora: new Date().toISOString()
+            });
+            localStorage.setItem('historico_acessos', JSON.stringify(acessos));
+            alert("Acesso facial reconhecido! Catraca aberta com sucesso.");
+        }
+
+        // Excluir Conta
+        function confirmarExclusaoConta() {
+            if(confirm("ATENÇÃO: Deseja realmente excluir permanentemente sua conta e remover seus dados faciais da leitora?")) {
+                if(!moradorLogadoAtual) return;
+                let moradores = JSON.parse(localStorage.getItem('moradores_mercadinho') || '[]');
+                moradores = moradores.filter(m => m.email !== moradorLogadoAtual.email);
+                localStorage.setItem('moradores_mercadinho', JSON.stringify(moradores));
+                fazerLogoutMorador();
+                alert("Sua conta foi excluída com sucesso.");
             }
         }
     </script>

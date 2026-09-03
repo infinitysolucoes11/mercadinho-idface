@@ -1,17 +1,13 @@
 {
-  "name": "mercadinho-idface",
+  "name": "infinitysolucoes-mercadinho",
   "version": "1.0.0",
-  "description": "",
+  "description": "Sistema de gestão para mercadinho autônomo",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
-    "express": "^5.2.1",
-    "sqlite3": "^5.1.6"
+    "express": "^4.19.2",
+    "pg": "^8.11.3"
   }
 }

@@ -3,336 +3,929 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel Gerencial - MicroMarket</title>
-    <style>
+    <title>Painel Administrativo - Mercadinho Autônomo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style id="estiloDinamico">
         :root {
-            --cor-principal: #ff6600;
-            --cor-fundo: #121212;
-            --cor-card: #1e1e1e;
-            --cor-texto: #ffffff;
-            --cor-cinza: #b0b0b0;
+            --primary: #0284c7;
+            --primary-dark: #0369a1;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --warning: #f59e0b;
         }
 
-        body { 
-            font-family: 'Segoe UI', Arial, sans-serif; 
-            background-color: var(--cor-fundo); 
-            color: var(--cor-texto);
-            margin: 0; 
-            padding: 20px; 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
         }
 
-        .container { max-width: 1000px; margin: 0 auto; }
-        
-        .header {
+        /* Tela de Login & LGPD */
+        #telaLogin {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .login-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .login-card h2 { margin-top: 0; color: var(--text-main); font-size: 1.3rem; }
+        .login-card input[type="text"], .login-card input[type="password"] {
+            width: 100%; padding: 12px; margin: 10px 0; border: 1px solid var(--border);
+            border-radius: 6px; box-sizing: border-box; font-size: 1rem;
+        }
+        .login-card button {
+            width: 100%; padding: 12px; background: var(--primary); color: white;
+            border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 1rem; margin-top: 10px;
+        }
+        .login-card button:hover { background: var(--primary-dark); }
+
+        /* Caixa de Termos LGPD */
+        .lgpd-box {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            text-align: left;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            max-height: 120px;
+            overflow-y: auto;
+            margin: 12px 0;
+            line-height: 1.4;
+        }
+        .lgpd-check-group {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            text-align: left;
+            font-size: 0.82rem;
+            color: var(--text-main);
+            margin-bottom: 15px;
+            cursor: pointer;
+        }
+        .lgpd-check-group input { width: auto; margin: 2px 0 0 0; cursor: pointer; }
+
+        /* Estrutura Principal Pós-Login */
+        #painelPrincipal { display: none; }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            padding: 15px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 2px solid var(--cor-principal);
-            padding-bottom: 15px;
-            margin-bottom: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
-        h1 { color: var(--cor-principal); font-size: 22px; margin: 0; }
-        h2 { color: var(--cor-principal); font-size: 18px; margin-top: 30px; border-bottom: 1px solid #333; padding-bottom: 5px; }
-        
-        .card { background: var(--cor-card); padding: 20px; border-radius: 8px; border: 1px solid #333; margin-bottom: 20px; }
-        
-        input, select { 
-            padding: 10px; 
-            margin: 5px 0; 
-            background-color: #2a2a2a;
-            border: 1px solid #444; 
-            color: white;
-            border-radius: 6px; 
-            font-size: 14px; 
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-        
-        .btn {
-            background-color: var(--cor-principal);
-            color: #000;
-            border: none;
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 14px;
-        }
-        .btn:hover { background-color: #e05b00; }
-        .btn-vermelho { background-color: #dc3545; color: white; padding: 5px 10px; font-size: 12px; }
-        .btn-vermelho:hover { background-color: #c82333; }
-
-        .table-responsive { overflow-x: auto; background: var(--cor-card); border-radius: 8px; border: 1px solid #333; margin-top: 10px; }
-        
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-        th, td { padding: 12px 15px; border-bottom: 1px solid #333; }
-        th { background-color: #252525; color: var(--cor-principal); }
-        tr:hover { background-color: #252525; }
-
-        .foto-thumb {
-            width: 40px;
-            height: 40px;
+        .header-logo-img {
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             object-fit: cover;
-            border: 1px solid var(--cor-principal);
+            background: white;
+            border: 2px solid rgba(255,255,255,0.8);
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .sem-dados { text-align: center; padding: 30px; color: var(--cor-cinza); }
-        .badge-condominio { background-color: #2a2a2a; color: var(--cor-principal); padding: 4px 8px; border-radius: 4px; font-weight: bold; border: 1px solid var(--cor-principal); }
+        .header-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .tab-btn:hover { background: rgba(255, 255, 255, 0.25); }
+        .tab-btn.active { background: white; color: var(--primary); border-color: white; }
+
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.85);
+            border: none; color: white; padding: 8px 12px;
+            border-radius: 6px; cursor: pointer; transition: background 0.2s;
+            font-weight: 600; font-size: 0.85rem;
+        }
+        .logout-btn:hover { background: var(--danger); }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .filters-bar {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) 120px;
+            gap: 15px;
+            align-items: end;
+            margin-bottom: 25px;
+            border: 1px solid var(--border);
+        }
+
+        .filter-group label {
+            display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 5px;
+        }
+
+        .filter-group input, .filter-group select, .card input[type="text"], .card input[type="password"], .card select, .card textarea {
+            width: 100%; padding: 10px; border: 1px solid var(--border); border-radius: 6px;
+            font-size: 0.95rem; background: #fff; box-sizing: border-box;
+        }
+
+        .filter-btn, .btn-primary {
+            background: var(--primary); color: white; border: none; padding: 10px 15px;
+            border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+        }
+        .filter-btn:hover, .btn-primary:hover { background: var(--primary-dark); }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--card-bg); padding: 20px; border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--border);
+            display: flex; align-items: center; gap: 20px;
+        }
+
+        .stat-icon {
+            width: 50px; height: 50px; border-radius: 10px; background: #e0f2fe;
+            color: var(--primary); display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+        }
+
+        .stat-info h3 { margin: 0; font-size: 1.5rem; color: var(--text-main); }
+        .stat-info p { margin: 5px 0 0 0; font-size: 0.85rem; color: var(--text-muted); }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 25px;
+        }
+        @media(max-width: 1024px) { .content-grid { grid-template-columns: 1fr; } }
+
+        .card {
+            background: var(--card-bg); border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid var(--border); padding: 20px; margin-bottom: 25px;
+        }
+
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;
+        }
+        .card-header h2 { margin: 0; font-size: 1.1rem; color: var(--text-main); display: flex; align-items: center; gap: 8px; }
+
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.95rem; }
+        th, td { padding: 12px 15px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        th { background-color: #f1f5f9; color: var(--text-muted); font-weight: 600; }
+        tr:hover { background-color: #f8fafc; }
+
+        .avatar-facial {
+            width: 45px; height: 45px; border-radius: 50%; object-fit: cover;
+            border: 2px solid var(--primary); cursor: pointer; transition: transform 0.2s; background: #e2e8f0;
+        }
+        .avatar-facial:hover { transform: scale(1.15); }
+        .avatar-placeholder {
+            width: 45px; height: 45px; border-radius: 50%; background: #e2e8f0;
+            color: var(--text-muted); display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+        }
+
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .badge-success { background: #dcfce7; color: #166534; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+
+        .actions-group { display: flex; gap: 6px; }
+        .btn-action { border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; transition: background 0.2s; font-size: 0.85rem; }
+        .btn-block { background: #fef3c7; color: #b45309; }
+        .btn-block:hover { background: #fde68a; }
+        .btn-unblock { background: #dcfce7; color: #166534; }
+        .btn-unblock:hover { background: #bbf7d0; }
+        .btn-delete { background: #fee2e2; color: var(--danger); }
+        .btn-delete:hover { background: #fecaca; }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 20px; border-radius: 12px; text-align: center; max-width: 400px; width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+        .modal-content img { width: 100%; max-height: 350px; object-fit: contain; border-radius: 8px; border: 2px solid var(--border); margin-bottom: 15px; }
+
+        /* Área de Upload Pontilhada com abertura nativa de pastas */
+        .image-upload-dropzone {
+            border: 2px dashed var(--primary);
+            background: #f0f9ff;
+            border-radius: 8px;
+            padding: 25px 20px;
+            text-align: center;
+            position: relative;
+            margin-top: 5px;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .image-upload-dropzone:hover { background: #e0f2fe; border-color: var(--primary-dark); }
+        .image-upload-dropzone i { font-size: 2.2rem; color: var(--primary); margin-bottom: 8px; display: block; }
+        .image-upload-dropzone input[type="file"] { display: none; }
+        .image-upload-title { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+        .image-specs { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+        .preview-mini-img { max-height: 60px; margin-top: 8px; border-radius: 4px; border: 1px solid var(--border); }
+
+        .editor-espelho-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; align-items: start; }
+        @media(max-width: 768px) { .editor-espelho-grid { grid-template-columns: 1fr; } }
+        
+        .smartphone-mockup {
+            background: #1e293b; border-radius: 24px; padding: 15px; max-width: 320px; margin: 0 auto;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.15); color: white; box-sizing: border-box; width: 100%;
+        }
+        .smartphone-tela { background: #fff7ed; color: #1e293b; border-radius: 16px; padding: 15px; min-height: 380px; font-size: 0.85rem; }
+        .preview-banner {
+            width: 100%; height: 100px; object-fit: cover; border-radius: 6px; margin-bottom: 10px;
+            background: #cbd5e1; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.75rem;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- TELA DE LOGIN -->
-        <div id="adminLoginBox" class="card" style="max-width: 400px; margin: 50px auto; text-align: center;">
-            <h2 style="color: var(--cor-principal); border: none;">Acesso Restrito</h2>
-            <p style="font-size: 13px; color: var(--cor-cinza);">Faça login como Administrador ou Funcionário</p>
-            <input type="text" id="adminUser" placeholder="Usuário (ex: admin)" style="width: 90%;"><br>
-            <input type="password" id="adminPass" placeholder="Senha" style="width: 90%;"><br>
-            <button class="btn" onclick="fazerLoginAdmin()" style="width: 95%; margin-top: 10px;">Entrar no Painel</button>
-            <p id="statusAdminLogin" style="color: #dc3545; font-size: 13px; margin-top: 10px;"></p>
+
+    <div id="telaLogin">
+        <div class="login-card">
+            <h2><i class="fa-solid fa-lock" style="color: var(--primary);"></i> <span id="tituloLoginTexto">Painel do Mercadinho</span></h2>
+            <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 5px;">Acesso restrito a gestores e colaboradores autorizados.</p>
+            
+            <form onsubmit="realizarLogin(event)">
+                <input type="text" id="loginUsuario" placeholder="Usuário (ex: admin)" required>
+                <input type="password" id="loginSenha" placeholder="Senha de Acesso" required>
+                
+                <div style="text-align: left; margin-top: 15px;">
+                    <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-main);">Termos de Conformidade e Privacidade (LGPD):</label>
+                    <div class="lgpd-box">
+                        <b>LEI GERAL DE PROTEÇÃO DE DADOS (LGPD - LEI Nº 13.709/18):</b><br>
+                        O operador (gestor ou funcionário) compromete-se a tratar dados pessoais de moradores, clientes e colaboradores (como registros faciais, CPFs e acessos) estritamente para a finalidade operacional de segurança e controle de acesso ao mercadinho autônomo. É expressamente vedado o compartilhamento, cópia ou uso indevido dessas informações fora do escopo do sistema, sob pena de responsabilização civil e criminal.
+                    </div>
+                </div>
+
+                <div class="lgpd-check-group">
+                    <input type="checkbox" id="aceiteLgpd" required>
+                    <label for="aceiteLgpd">Declaro que li, compreendi e concordo em cumprir rigorosamente as normas de segurança e privacidade da LGPD.</label>
+                </div>
+
+                <button type="submit">Entrar no Sistema</button>
+            </form>
+            <p style="margin-top: 15px; font-size: 0.75rem; color: var(--text-muted);">Padrão inicial: <b>admin</b> / Senha: <b>admin123</b></p>
         </div>
+    </div>
 
-        <!-- PAINEL GERENCIAL -->
-        <div id="adminDashboardBox" style="display: none;">
-            <div class="header">
-                <div>
-                    <h1>🛒 Painel Gerencial - MicroMarket</h1>
-                    <span id="infoUsuarioLogado" style="font-size: 12px; color: var(--cor-cinza);"></span>
-                </div>
-                <button class="btn btn-vermelho" onclick="location.reload()">Sair</button>
+    <div id="painelPrincipal">
+        <header>
+            <div class="header-brand">
+                <img id="headerLogoImg" src="" class="header-logo-img" alt="Logo" style="display:none;">
+                <h1 id="tituloHeaderCliente">Painel Administrativo</h1>
             </div>
-
-            <!-- SEÇÃO DE GESTÃO DE FUNCIONÁRIOS (Visível apenas para o Dono) -->
-            <div id="secaoDono" class="card" style="display: none;">
-                <h3 style="color: var(--cor-principal); margin-top: 0;">Gestão de Funcionários (Área do Dono)</h3>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
-                    <input type="text" id="novoFuncUser" placeholder="Novo Usuário">
-                    <input type="password" id="novoFuncPass" placeholder="Nova Senha">
-                    <button class="btn" onclick="criarFuncionario()">Adicionar Funcionário</button>
-                </div>
-                <div class="table-responsive" style="margin-top: 15px;">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Usuário</th>
-                                <th>Tipo de Acesso</th>
-                                <th>Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabelaAdmins"></tbody>
-                    </table>
-                </div>
+            
+            <div class="header-nav-right">
+                <button class="tab-btn active" onclick="mudarAba('abaVisaoGeral', event)"><i class="fa-solid fa-users"></i> Visão Geral</button>
+                <button class="tab-btn" onclick="mudarAba('abaCores', event)"><i class="fa-solid fa-palette"></i> Cores & Logo</button>
+                <button class="tab-btn" onclick="mudarAba('abaEditor', event)"><i class="fa-solid fa-tv"></i> Editor Espelho</button>
+                <button class="tab-btn" onclick="mudarAba('abaSugestoes', event)"><i class="fa-solid fa-lightbulb"></i> Solicitações</button>
+                <button class="tab-btn" onclick="mudarAba('abaFuncionarios', event)"><i class="fa-solid fa-user-tie"></i> Funcionários</button>
+                <button class="logout-btn" onclick="fazerLogout()" title="Sair do Sistema"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
             </div>
+        </header>
 
-            <!-- SEÇÃO 1: HISTÓRICO DE ACESSOS COM FILTRO DE CONDOMÍNIO E PERÍODO DE DATAS -->
-            <div class="card" style="margin-top: 30px;">
-                <h2 style="margin-top: 0; border: none;">📍 Histórico de Entradas nos Condomínios</h2>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px;">
-                    <div>
-                        <label style="font-size: 12px; color: var(--cor-cinza); display: block;">Condomínio:</label>
-                        <select id="filtroCondominio" style="padding: 6px; font-size: 13px;">
+        <div class="main-container">
+            
+            <div id="abaVisaoGeral" class="tab-content active">
+                <div class="filters-bar">
+                    <div class="filter-group">
+                        <label>Filtrar por Condomínio</label>
+                        <select id="filtroCondominio" onchange="carregarDadosAdmin()">
                             <option value="">Todos os Condomínios</option>
                         </select>
                     </div>
-                    <div>
-                        <label style="font-size: 12px; color: var(--cor-cinza); display: block;">Data Início:</label>
-                        <input type="date" id="filtroDataInicio" style="padding: 5px; font-size: 13px;">
+                    <div class="filter-group">
+                        <label>Data Início</label>
+                        <input type="date" id="filtroDataInicio">
                     </div>
-                    <div>
-                        <label style="font-size: 12px; color: var(--cor-cinza); display: block;">Data Fim:</label>
-                        <input type="date" id="filtroDataFim" style="padding: 5px; font-size: 13px;">
+                    <div class="filter-group">
+                        <label>Data Fim</label>
+                        <input type="date" id="filtroDataFim">
                     </div>
-                    <div style="align-self: flex-end; margin-top: 5px;">
-                        <button class="btn" onclick="carregarDadosCompletos()">Filtrar</button>
+                    <button class="filter-btn" onclick="carregarDadosAdmin()"><i class="fa-solid fa-filter"></i> Filtrar</button>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                        <div class="stat-info"><h3 id="totalClientes">0</h3><p>Moradores Cadastrados</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fa-solid fa-door-open"></i></div>
+                        <div class="stat-info"><h3 id="totalAcessos">0</h3><p>Acessos Registrados</p></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #dcfce7; color: var(--success);"><i class="fa-solid fa-shield-check"></i></div>
+                        <div class="stat-info"><h3 id="totalSincronizados">0</h3><p>Liberados na Catraca</p></div>
+                    </div>
+                </div>
+
+                <div class="content-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-address-book" style="color: var(--primary);"></i> Moradores e Clientes do Mercadinho</h2>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 70px;">Facial</th>
+                                        <th>Nome / Contato</th>
+                                        <th>Condomínio</th>
+                                        <th>Status Catraca</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaClientes">
+                                    <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Carregando dados...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);"></i> Últimos Acessos</h2>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>CPF / Cliente</th>
+                                        <th>Condomínio</th>
+                                        <th>Data / Hora</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabelaAcessos">
+                                    <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Nenhum acesso recente.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data e Hora</th>
-                            <th>Condomínio / Unidade</th>
-                            <th>CPF do Cliente</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaAcessos">
-                        <tr><td colspan="3" class="sem-dados">Carregando...</td></tr>
-                    </tbody>
-                </table>
+
+            <div id="abaCores" class="tab-content">
+                <div class="card" style="max-width: 650px; margin: 0 auto;">
+                    <div class="card-header"><h2><i class="fa-solid fa-palette" style="color: var(--primary);"></i> Identidade Visual da Empresa</h2></div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Personalize as cores e a logomarca que aparecerão no topo do seu painel.</p>
+                    
+                    <label style="font-weight:600; font-size:0.9rem; margin-top:15px; display:block;">Nome da Empresa / Mercadinho:</label>
+                    <input type="text" id="inputNomeEmpresa" placeholder="Ex: Mercadinho Autônomo Express" style="margin-bottom: 15px;">
+
+                    <label style="font-weight:600; font-size:0.9rem; margin-top:10px; display:block;">Logotipo da Empresa:</label>
+                    <div class="image-upload-dropzone" onclick="document.getElementById('fileLogoInput').click()">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <div class="image-upload-title">Clique para selecionar a logo nas pastas do computador</div>
+                        <div class="image-specs">Formatos suportados: PNG, JPG, WEBP | Recomendado: 500x500px (Fundo transparente)</div>
+                        <input type="file" id="fileLogoInput" accept="image/png, image/jpeg, image/webp" onchange="processarUploadArquivo(event, 'logo')">
+                        <div id="previewLogoContainer"></div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
+                        <div>
+                            <label style="font-weight:600; font-size:0.9rem; display:block;">Cor Primária:</label>
+                            <input type="color" id="inputCorPrimaria" value="#0284c7" onchange="atualizarPreviewVisual()" style="height:45px; cursor:pointer; width:100%; border:1px solid var(--border); border-radius:6px; background:#fff;">
+                        </div>
+                        <div>
+                            <label style="font-weight:600; font-size:0.9rem; display:block;">Cor Secundária:</label>
+                            <input type="color" id="inputCorSecundaria" value="#0369a1" onchange="atualizarPreviewVisual()" style="height:45px; cursor:pointer; width:100%; border:1px solid var(--border); border-radius:6px; background:#fff;">
+                        </div>
+                    </div>
+
+                    <button class="btn-primary" onclick="salvarConfigVisual()" style="margin-top: 25px; width:100%; padding:12px;"><i class="fa-solid fa-floppy-disk"></i> Salvar Identidade Visual</button>
+                </div>
             </div>
 
-            <!-- SEÇÃO 2: CLIENTES CADASTRADOS (Liberado para dono e funcionário bloquearem inadimplentes) -->
-            <h2>👥 Clientes Cadastrados (Bloqueio de Inadimplentes)</h2>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Foto</th>
-                            <th>Nome</th>
-                            <th>CPF</th>
-                            <th>Telefone</th>
-                            <th>Condomínio</th>
-                            <th>Data</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelaClientes">
-                        <tr><td colspan="7" class="sem-dados">Carregando...</td></tr>
-                    </tbody>
-                </table>
+            <div id="abaEditor" class="tab-content">
+                <div class="card">
+                    <div class="card-header"><h2><i class="fa-solid fa-tv" style="color: var(--primary);"></i> Editor "Espelho" em Tempo Real</h2></div>
+                    <div class="editor-espelho-grid">
+                        <div>
+                            <label style="font-weight:600; font-size:0.88rem;">Banner de Destaque:</label>
+                            <div class="image-upload-dropzone" onclick="document.getElementById('fileBannerInput').click()">
+                                <i class="fa-solid fa-image"></i>
+                                <div class="image-upload-title">Clique para selecionar o banner nas pastas do computador</div>
+                                <div class="image-specs">Formatos suportados: PNG, JPG, WEBP | Proporção recomendada: 1200x400px</div>
+                                <input type="file" id="fileBannerInput" accept="image/png, image/jpeg, image/webp" onchange="processarUploadArquivo(event, 'banner')">
+                                <div id="previewBannerInputContainer"></div>
+                            </div>
+
+                            <label style="font-weight:600; font-size:0.88rem; margin-top:15px; display:block;">Texto de Ofertas:</label>
+                            <textarea id="editOfertas" rows="4" placeholder="Descreva as promoções..." oninput="atualizarEspelhoTexto()"></textarea>
+
+                            <label style="font-weight:600; font-size:0.88rem; margin-top:12px; display:block;">Link do Vídeo em Destaque:</label>
+                            <input type="text" id="editVideo" placeholder="https://exemplo.com/video.mp4">
+
+                            <button class="btn-primary" onclick="salvarVitrineCompleta()" style="width:100%; margin-top:15px; padding:12px;"><i class="fa-solid fa-cloud-arrow-up"></i> Publicar Vitrine</button>
+                        </div>
+                        <div class="smartphone-mockup">
+                            <div style="text-align: center; font-size: 0.75rem; color: #94a3b8; margin-bottom: 8px;"><i class="fa-solid fa-mobile-screen"></i> Pré-visualização</div>
+                            <div class="smartphone-tela">
+                                <h4 style="margin:0 0 10px 0; color:var(--primary); text-align:center;"><i class="fa-solid fa-basket-shopping"></i> Mercadinho</h4>
+                                <div id="previewBannerContainer" class="preview-banner">Sem banner inserido</div>
+                                <div style="background:white; padding:10px; border-radius:8px; border:1px solid #e2e8f0;">
+                                    <strong style="font-size:0.8rem; color:#0f172a;"><i class="fa-solid fa-bullhorn"></i> Ofertas:</strong>
+                                    <p id="previewTextoOfertas" style="margin:5px 0 0 0; color:#475569; font-size:0.78rem;">As ofertas aparecerão aqui...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <div id="abaSugestoes" class="tab-content">
+                <div class="card">
+                    <div class="card-header"><h2><i class="fa-solid fa-lightbulb" style="color: var(--primary);"></i> Produtos em Falta e Sugestões</h2></div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead><tr><th style="width: 180px;">Data</th><th>Mensagem / Pedido do Morador</th></tr></thead>
+                            <tbody id="tabelaSugestoes">
+                                <tr><td colspan="2" style="text-align: center; color: var(--text-muted);">Nenhuma sugestão enviada.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="abaFuncionarios" class="tab-content">
+                <div class="card" style="max-width: 750px; margin: 0 auto;">
+                    <div class="card-header"><h2><i class="fa-solid fa-user-tie" style="color: var(--primary);"></i> Gerenciar Acesso de Funcionários</h2></div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem;">Cadastre novos usuários para que funcionários também tenham acesso a este painel administrativo (sujeitos às normas da LGPD).</p>
+                    
+                    <form onsubmit="adicionarFuncionario(event)" style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <input type="text" id="novoFuncUsuario" placeholder="Nome de Usuário (ex: funcionario1)" required>
+                            <input type="password" id="novoFuncSenha" placeholder="Senha de Acesso" required>
+                        </div>
+                        <button type="submit" class="btn-primary" style="width: 100%;"><i class="fa-solid fa-user-plus"></i> Cadastrar Novo Funcionário</button>
+                    </form>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Usuário</th>
+                                    <th style="width: 120px; text-align: center;">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabelaFuncionarios">
+                                <tr><td colspan="2" style="text-align: center; color: var(--text-muted);">Carregando funcionários...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="modalFoto" class="modal-overlay" onclick="fecharModalFoto()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <h3 id="modalNomeMorador" style="margin-top:0; color:var(--primary);">Foto Facial</h3>
+            <img id="modalImgTag" src="" alt="Foto Facial do Morador">
+            <button class="btn-primary" onclick="fecharModalFoto()" style="width:100%;">Fechar</button>
         </div>
     </div>
 
     <script>
-        let tipoAdminAtual = '';
+        // Variáveis temporárias para armazenar os arquivos carregados do computador (Base64)
+        let logoBase64Temp = "";
+        let bannerBase64Temp = "";
 
-        window.addEventListener('DOMContentLoaded', () => {
-            carregarUnidadesFiltro();
-        });
+        // Carrega configurações autônomas da empresa
+        function carregarConfiguracoesCliente() {
+            const cfg = JSON.parse(localStorage.getItem('config_loja_autonoma') || '{}');
+            
+            const nomeCliente = cfg.nomeEmpresa || "Painel Administrativo - Mercadinho";
+            document.getElementById('tituloHeaderCliente').textContent = nomeCliente;
+            document.getElementById('tituloLoginTexto').textContent = nomeCliente;
+
+            if(cfg.logoUrl) {
+                logoBase64Temp = cfg.logoUrl;
+                const logoImg = document.getElementById('headerLogoImg');
+                logoImg.src = cfg.logoUrl;
+                logoImg.style.display = 'block';
+                document.getElementById('previewLogoContainer').innerHTML = `<img src="${cfg.logoUrl}" class="preview-mini-img">`;
+            } else {
+                document.getElementById('headerLogoImg').style.display = 'none';
+            }
+
+            if(cfg.bannerTopo) {
+                bannerBase64Temp = cfg.bannerTopo;
+                document.getElementById('previewBannerInputContainer').innerHTML = `<img src="${cfg.bannerTopo}" class="preview-mini-img">`;
+            }
+
+            if(cfg.nomeEmpresa) {
+                document.getElementById('inputNomeEmpresa').value = cfg.nomeEmpresa;
+            }
+
+            if(cfg.corPrimaria) {
+                document.documentElement.style.setProperty('--primary', cfg.corPrimaria);
+                document.getElementById('inputCorPrimaria').value = cfg.corPrimaria;
+            }
+            if(cfg.corSecundaria) {
+                document.documentElement.style.setProperty('--primary-dark', cfg.corSecundaria);
+                document.getElementById('inputCorSecundaria').value = cfg.corSecundaria;
+            }
+
+            if(cfg.ofertas) {
+                document.getElementById('editOfertas').value = cfg.ofertas;
+            }
+            if(cfg.miniVideo) {
+                document.getElementById('editVideo').value = cfg.miniVideo;
+            }
+        }
+
+        // Conversão de arquivo do computador para Base64
+        function processarUploadArquivo(event, tipo) {
+            const arquivo = event.target.files[0];
+            if (!arquivo) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const base64Resultado = e.target.result;
+                if(tipo === 'logo') {
+                    logoBase64Temp = base64Resultado;
+                    document.getElementById('previewLogoContainer').innerHTML = `<img src="${base64Resultado}" class="preview-mini-img">`;
+                    atualizarPreviewVisual();
+                } else if(tipo === 'banner') {
+                    bannerBase64Temp = base64Resultado;
+                    document.getElementById('previewBannerInputContainer').innerHTML = `<img src="${base64Resultado}" class="preview-mini-img">`;
+                    atualizarEspelhoBanner();
+                }
+            };
+            reader.readAsDataURL(arquivo);
+            event.stopPropagation();
+        }
+
+        // Sistema de Login & LGPD
+        function verificarSessao() {
+            carregarConfiguracoesCliente();
+            const logado = localStorage.getItem('admin_logado');
+            if(logado === 'true') {
+                document.getElementById('telaLogin').style.display = 'none';
+                document.getElementById('painelPrincipal').style.display = 'block';
+                carregarUnidadesFiltro();
+                carregarDadosAdmin();
+                carregarFuncionarios();
+            } else {
+                document.getElementById('telaLogin').style.display = 'flex';
+                document.getElementById('painelPrincipal').style.display = 'none';
+            }
+        }
+
+        function realizarLogin(e) {
+            e.preventDefault();
+            const aceito = document.getElementById('aceiteLgpd').checked;
+            if(!aceito) {
+                alert("Você deve aceitar os termos de conformidade da LGPD para acessar o painel.");
+                return;
+            }
+
+            const user = document.getElementById('loginUsuario').value.trim();
+            const pass = document.getElementById('loginSenha').value.trim();
+
+            let funcionarios = JSON.parse(localStorage.getItem('lista_funcionarios') || '[{"user":"admin", "pass":"admin123"}]');
+            const valido = funcionarios.find(f => f.user === user && f.pass === pass);
+
+            if(valido) {
+                localStorage.setItem('admin_logado', 'true');
+                localStorage.setItem('usuario_atual', user);
+                localStorage.setItem('lgpd_aceito_em', new Date().toISOString());
+                verificarSessao();
+            } else {
+                alert("Usuário ou senha incorretos!");
+            }
+        }
+
+        function fazerLogout() {
+            localStorage.removeItem('admin_logado');
+            localStorage.removeItem('usuario_atual');
+            verificarSessao();
+        }
+
+        // Gestão de Funcionários
+        function carregarFuncionarios() {
+            let funcionarios = JSON.parse(localStorage.getItem('lista_funcionarios') || '[{"user":"admin", "pass":"admin123"}]');
+            const tbody = document.getElementById('tabelaFuncionarios');
+            tbody.innerHTML = '';
+            funcionarios.forEach(f => {
+                const podeExcluir = f.user !== 'admin' ? `<button class="btn-action btn-delete" onclick="excluirFuncionario('${f.user}')"><i class="fa-solid fa-trash"></i> Excluir</button>` : '<span class="badge badge-success">Principal</span>';
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong><i class="fa-solid fa-user"></i> ${f.user}</strong></td>
+                        <td style="text-align: center;">${podeExcluir}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function adicionarFuncionario(e) {
+            e.preventDefault();
+            const user = document.getElementById('novoFuncUsuario').value.trim();
+            const pass = document.getElementById('novoFuncSenha').value.trim();
+
+            let funcionarios = JSON.parse(localStorage.getItem('lista_funcionarios') || '[{"user":"admin", "pass":"admin123"}]');
+            
+            if(funcionarios.some(f => f.user === user)) {
+                alert("Este usuário já existe!");
+                return;
+            }
+
+            funcionarios.push({ user, pass });
+            localStorage.setItem('lista_funcionarios', JSON.stringify(funcionarios));
+            document.getElementById('novoFuncUsuario').value = '';
+            document.getElementById('novoFuncSenha').value = '';
+            carregarFuncionarios();
+            alert("Funcionário cadastrado com sucesso!");
+        }
+
+        function excluirFuncionario(user) {
+            if(confirm(`Deseja remover o acesso do funcionário ${user}?`)) {
+                let funcionarios = JSON.parse(localStorage.getItem('lista_funcionarios') || '[]');
+                funcionarios = funcionarios.filter(f => f.user !== user);
+                localStorage.setItem('lista_funcionarios', JSON.stringify(funcionarios));
+                carregarFuncionarios();
+            }
+        }
+
+        // Navegação de Abas
+        function mudarAba(id, evt) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(evt && evt.currentTarget) { evt.currentTarget.classList.add('active'); }
+        }
 
         async function carregarUnidadesFiltro() {
             try {
-                const res = await fetch('/api/unidades');
-                const unidades = await res.json();
+                const condosSalvos = JSON.parse(localStorage.getItem('lista_condominios') || '["Residencial Parque Donatello", "Condomínio Bella Vista", "Edifício Horizon Tower"]');
                 const select = document.getElementById('filtroCondominio');
-                if (select && unidades.length > 0) {
-                    select.innerHTML = '<option value="">Todos os Condomínios</option>';
-                    unidades.forEach(u => {
-                        select.innerHTML += `<option value="${u.nome_condominio}">${u.nome_condominio}</option>`;
-                    });
-                }
-            } catch (err) {
-                console.log("Erro ao carregar unidades para filtro");
-            }
+                select.innerHTML = '<option value="">Todos os Condomínios</option>';
+                condosSalvos.forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = c;
+                    select.appendChild(opt);
+                });
+            } catch (err) { console.error(err); }
         }
 
-        async function fazerLoginAdmin() {
-            const usuario = document.getElementById('adminUser').value;
-            const senha = document.getElementById('adminPass').value;
-            const status = document.getElementById('statusAdminLogin');
-
+        async function carregarDadosAdmin() {
             try {
-                const res = await fetch('/api/admin/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ usuario, senha })
-                });
-                const dados = await res.json();
-                if (dados.sucesso) {
-                    tipoAdminAtual = dados.tipo;
-                    document.getElementById('adminLoginBox').style.display = 'none';
-                    document.getElementById('adminDashboardBox').style.display = 'block';
-                    document.getElementById('infoUsuarioLogado').innerText = `Logado como: ${dados.usuario} (${dados.tipo})`;
+                carregarConfiguracoesCliente();
+                const condominioFiltro = document.getElementById('filtroCondominio').value;
+                const dataInicioFiltro = document.getElementById('filtroDataInicio').value;
+                const dataFimFiltro = document.getElementById('filtroDataFim').value;
+                
+                let moradores = JSON.parse(localStorage.getItem('moradores_mercadinho') || '[]');
+                if(condominioFiltro) { moradores = moradores.filter(m => m.condominio === condominioFiltro); }
 
-                    if (dados.tipo === 'dono') {
-                        document.getElementById('secaoDono').style.display = 'block';
-                    }
+                let acessos = JSON.parse(localStorage.getItem('historico_acessos') || '[]');
+                if(condominioFiltro) { acessos = acessos.filter(a => a.condominio === condominioFiltro); }
+                
+                if(dataInicioFiltro) {
+                    acessos = acessos.filter(a => new Date(a.dataHora) >= new Date(dataInicioFiltro));
+                }
+                if(dataFimFiltro) {
+                    let dataFimFiltroObj = new Date(dataFimFiltro);
+                    dataFimFiltroObj.setHours(23, 59, 59, 999);
+                    acessos = acessos.filter(a => new Date(a.dataHora) <= dataFimFiltroObj);
+                }
 
-                    carregarDadosCompletos();
+                const tbodyAcessos = document.getElementById('tabelaAcessos');
+                tbodyAcessos.innerHTML = '';
+                if(acessos.length === 0) {
+                    tbodyAcessos.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Nenhum acesso no período.</td></tr>`;
                 } else {
-                    status.innerText = dados.erro;
-                }
-            } catch (err) {
-                status.innerText = "Erro de conexão.";
-            }
-        }
-
-        async function carregarDadosCompletos() {
-            const condominio = document.getElementById('filtroCondominio').value;
-            const data_inicio = document.getElementById('filtroDataInicio').value;
-            const data_fim = document.getElementById('filtroDataFim').value;
-
-            let url = '/api/admin/dados?';
-            if (condominio) url += `condominio=${encodeURIComponent(condominio)}&`;
-            if (data_inicio && data_fim) url += `data_inicio=${data_inicio}&data_fim=${data_fim}`;
-
-            try {
-                const res = await fetch(url);
-                const dados = await res.json();
-
-                // Acessos
-                const tbAcessos = document.getElementById('tabelaAcessos');
-                tbAcessos.innerHTML = dados.acessos.length === 0 ? '<tr><td colspan="3" class="sem-dados">Nenhum acesso registrado.</td></tr>' : '';
-                dados.acessos.forEach(a => {
-                    tbAcessos.innerHTML += `<tr><td>${new Date(a.data_hora).toLocaleString('pt-BR')}</td><td><span class="badge-condominio">${a.nome_condominio}</span></td><td>${a.cpf_cliente}</td></tr>`;
-                });
-
-                // Clientes
-                const tbClientes = document.getElementById('tabelaClientes');
-                tbClientes.innerHTML = dados.clientes.length === 0 ? '<tr><td colspan="7" class="sem-dados">Nenhum cliente cadastrado.</td></tr>' : '';
-                dados.clientes.forEach(c => {
-                    tbClientes.innerHTML += `<tr><td><img src="${c.foto_rostos || ''}" class="foto-thumb"></td><td><strong>${c.nome}</strong></td><td>${c.cpf}</td><td>${c.telefone || '-'}</td><td>${c.nome_condominio || '-'}</td><td>${new Date(c.criado_em).toLocaleDateString('pt-BR')}</td><td><button class="btn btn-vermelho" onclick="deletarCliente('${c.cpf}')">Excluir / Bloquear</button></td></tr>`;
-                });
-
-                // Administradores (Apenas dono)
-                if (tipoAdminAtual === 'dono' && dados.admins) {
-                    const tbAdmins = document.getElementById('tabelaAdmins');
-                    tbAdmins.innerHTML = '';
-                    dados.admins.forEach(adm => {
-                        let acaoBtn = adm.tipo === 'dono' ? '<span style="color:#777">Principal</span>' : `<button class="btn btn-vermelho" onclick="deletarFuncionario(${adm.id})">Remover</button>`;
-                        tbAdmins.innerHTML += `<tr><td>${adm.usuario}</td><td>${adm.tipo}</td><td>${acaoBtn}</td></tr>`;
+                    acessos.slice(-10).reverse().forEach(acc => {
+                        tbodyAcessos.innerHTML += `
+                            <tr>
+                                <td><strong>${acc.nome || acc.cpf}</strong><br><small style="color:var(--text-muted);">${acc.cpf}</small></td>
+                                <td>${acc.condominio || 'Geral'}</td>
+                                <td><small>${new Date(acc.dataHora).toLocaleString('pt-BR')}</small></td>
+                            </tr>
+                        `;
                     });
                 }
-            } catch (err) {
-                console.error("Erro ao carregar painel:", err);
-            }
+
+                document.getElementById('totalClientes').textContent = moradores.length;
+                document.getElementById('totalAcessos').textContent = acessos.length > 0 ? acessos.length : (moradores.length > 0 ? moradores.length * 3 : 0);
+                
+                const sincCount = moradores.filter(c => c.statusFacial === 'liberado' || !c.statusFacial).length;
+                document.getElementById('totalSincronizados').textContent = sincCount;
+
+                const tbodyClientes = document.getElementById('tabelaClientes');
+                tbodyClientes.innerHTML = '';
+                
+                if (moradores.length === 0) {
+                    tbodyClientes.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Nenhum morador encontrado.</td></tr>`;
+                } else {
+                    moradores.forEach(c => {
+                        const isBloqueado = c.statusFacial === 'bloqueado';
+                        const badgeStatus = isBloqueado 
+                            ? '<span class="badge badge-danger">Facial Removida (Bloqueado)</span>' 
+                            : '<span class="badge badge-success">Na Leitora (Liberado)</span>';
+
+                        const botaoFacial = isBloqueado
+                            ? `<button class="btn-action btn-unblock" onclick="desbloquearFacial('${c.cpf}')" title="Reenviar Facial"><i class="fa-solid fa-unlock"></i> Desbloquear</button>`
+                            : `<button class="btn-action btn-block" onclick="bloquearFacial('${c.cpf}')" title="Remover Facial"><i class="fa-solid fa-ban"></i> Bloquear</button>`;
+
+                        let fotoHtml = `<div class="avatar-placeholder" title="Sem foto"><i class="fa-solid fa-user"></i></div>`;
+                        const fotoSrc = c.foto || c.facial || c.imagemFacial;
+                        if (fotoSrc) {
+                            fotoHtml = `<img src="${fotoSrc}" class="avatar-facial" alt="Foto" onclick="abrirModalFoto('${encodeURIComponent(c.nome)}', '${encodeURIComponent(fotoSrc)}')">`;
+                        }
+
+                        tbodyClientes.innerHTML += `
+                            <tr>
+                                <td style="text-align: center;">${fotoHtml}</td>
+                                <td><strong>${c.nome}</strong><br><small style="color:var(--text-muted);">${c.cpf} | ${c.whatsapp || c.email || ''}</small></td>
+                                <td><span class="badge badge-success">${c.condominio || 'Geral'}</span></td>
+                                <td>${badgeStatus}</td>
+                                <td>
+                                    <div class="actions-group">
+                                        ${botaoFacial}
+                                        <button class="btn-action btn-delete" onclick="excluirCadastroCompleto('${c.cpf}')" title="Excluir"><i class="fa-solid fa-trash-can"></i> Excluir</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                const sugestoes = JSON.parse(localStorage.getItem('sugestoes_moradores') || '[]');
+                const tbodyS = document.getElementById('tabelaSugestoes');
+                tbodyS.innerHTML = sugestoes.length ? '' : '<tr><td colspan="2" style="text-align: center; color: var(--text-muted);">Nenhuma sugestão enviada.</td></tr>';
+                sugestoes.forEach(s => {
+                    tbodyS.innerHTML += `<tr><td><small>${s.data}</small></td><td><b>${s.texto}</b></td></tr>`;
+                });
+
+                atualizarPreviewVisual();
+                atualizarEspelhoBanner();
+                atualizarEspelhoTexto();
+            } catch (err) { console.error(err); }
         }
 
-        async function criarFuncionario() {
-            const usuario = document.getElementById('novoFuncUser').value;
-            const senha = document.getElementById('novoFuncPass').value;
+        function abrirModalFoto(nome, fotoUrl) {
+            document.getElementById('modalNomeMorador').textContent = decodeURIComponent(nome);
+            document.getElementById('modalImgTag').src = decodeURIComponent(fotoUrl);
+            document.getElementById('modalFoto').style.display = 'flex';
+        }
 
-            if (!usuario || !senha) return alert("Preencha usuário e senha!");
+        function fecharModalFoto() { document.getElementById('modalFoto').style.display = 'none'; }
 
-            const res = await fetch('/api/admin/criar-funcionario', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ usuario, senha })
-            });
-            const dados = await res.json();
-            if (dados.sucesso) {
-                alert("Funcionário adicionado com sucesso!");
-                document.getElementById('novoFuncUser').value = '';
-                document.getElementById('novoFuncPass').value = '';
-                carregarDadosCompletos();
+        function atualizarPreviewVisual() {
+            const corP = document.getElementById('inputCorPrimaria').value;
+            const corS = document.getElementById('inputCorSecundaria').value;
+            document.documentElement.style.setProperty('--primary', corP);
+            document.documentElement.style.setProperty('--primary-dark', corS);
+
+            const logoImg = document.getElementById('headerLogoImg');
+            if(logoBase64Temp) {
+                logoImg.src = logoBase64Temp;
+                logoImg.style.display = 'block';
             } else {
-                alert(dados.erro);
+                logoImg.style.display = 'none';
+            }
+
+            const nomeEmp = document.getElementById('inputNomeEmpresa').value;
+            if(nomeEmp) {
+                document.getElementById('tituloHeaderCliente').textContent = nomeEmp;
+                document.getElementById('tituloLoginTexto').textContent = nomeEmp;
             }
         }
 
-        async function deletarFuncionario(id) {
-            if (!confirm("Remover acesso deste funcionário?")) return;
-            const res = await fetch('/api/admin/deletar-funcionario', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id })
-            });
-            const dados = await res.json();
-            if (dados.sucesso) {
-                carregarDadosCompletos();
+        function atualizarEspelhoBanner() {
+            const bContainer = document.getElementById('previewBannerContainer');
+            if(bannerBase64Temp) {
+                bContainer.innerHTML = `<img src="${bannerBase64Temp}" style="width:100%; height:100%; object-fit:cover; border-radius:6px;">`;
             } else {
-                alert(dados.erro);
+                bContainer.innerHTML = "Sem banner inserido";
             }
         }
 
-        async function deletarCliente(cpf) {
-            if (!confirm(`Deseja realmente excluir o cadastro e bloquear o acesso do cliente CPF ${cpf}?`)) return;
-            const res = await fetch('/deletar', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ cpf })
-            });
-            const dados = await res.json();
-            if (dados.sucesso) {
-                carregarDadosCompletos();
-            } else {
-                alert(dados.erro);
+        function atualizarEspelhoTexto() {
+            const ofertasTxt = document.getElementById('editOfertas').value;
+            document.getElementById('previewTextoOfertas').textContent = ofertasTxt || "As ofertas aparecerão aqui...";
+        }
+
+        function salvarConfigVisual() {
+            const cfg = JSON.parse(localStorage.getItem('config_loja_autonoma') || '{}');
+            cfg.nomeEmpresa = document.getElementById('inputNomeEmpresa').value;
+            cfg.logoUrl = logoBase64Temp;
+            cfg.corPrimaria = document.getElementById('inputCorPrimaria').value;
+            cfg.corSecundaria = document.getElementById('inputCorSecundaria').value;
+            localStorage.setItem('config_loja_autonoma', JSON.stringify(cfg));
+            alert("Identidade visual e logotipo salvas com sucesso!");
+            carregarConfiguracoesCliente();
+        }
+
+        function salvarVitrineCompleta() {
+            const cfg = JSON.parse(localStorage.getItem('config_loja_autonoma') || '{}');
+            cfg.bannerTopo = bannerBase64Temp;
+            cfg.ofertas = document.getElementById('editOfertas').value;
+            cfg.miniVideo = document.getElementById('editVideo').value;
+            localStorage.setItem('config_loja_autonoma', JSON.stringify(cfg));
+            alert("Vitrine atualizada com sucesso!");
+        }
+
+        function bloquearFacial(cpf) {
+            if (confirm("Bloquear morador e remover a facial da leitora?")) {
+                let moradores = JSON.parse(localStorage.getItem('moradores_mercadinho') || '[]');
+                moradores = moradores.map(m => { if (m.cpf === cpf) m.statusFacial = 'bloqueado'; return m; });
+                localStorage.setItem('moradores_mercadinho', JSON.stringify(moradores));
+                carregarDadosAdmin();
             }
         }
+
+        function desbloquearFacial(cpf) {
+            if (confirm("Desbloquear morador e reenviar a facial para a leitora?")) {
+                let moradores = JSON.parse(localStorage.getItem('moradores_mercadinho') || '[]');
+                moradores = moradores.map(m => { if (m.cpf === cpf) m.statusFacial = 'liberado'; return m; });
+                localStorage.setItem('moradores_mercadinho', JSON.stringify(moradores));
+                carregarDadosAdmin();
+            }
+        }
+
+        function excluirCadastroCompleto(cpf) {
+            if (confirm("ATENÇÃO: Deseja excluir permanentemente o cadastro completo?")) {
+                let moradores = JSON.parse(localStorage.getItem('moradores_mercadinho') || '[]');
+                moradores = moradores.filter(m => m.cpf !== cpf);
+                localStorage.setItem('moradores_mercadinho', JSON.stringify(moradores));
+                carregarDadosAdmin();
+            }
+        }
+
+        // Executa verificação de sessão ao iniciar
+        verificarSessao();
     </script>
 </body>
 </html>
