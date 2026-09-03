@@ -96,4 +96,89 @@ app.get('/api/status-db', async (req, res) => {
 // Escutando em '0.0.0.0' para aceitar requisições externas do Render
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Servidor rodando na porta ${PORT}`);
+});// ==========================================
+// ROTAS DE CADASTRO E VERIFICAÇÃO
+// ==========================================
+
+// 1. Rota para iniciar o cadastro (gera o código e salva como pendente)
+app.post('/api/registrar', async (req, res) => {
+  const { nome, email, telefone } = req.body;
+
+  if (!nome || !email || !telefone) {
+    return res.status(400).json({ success: false, message: 'Preencha todos os campos obrigatórios.' });
+  }
+
+  // Gera um código numérico aleatório de 6 dígitos
+  const codigoVerificacao = Math.floor(100000 + Math.random() * 900000).toString();
+
+  try {
+    // Insere ou atualiza o usuário como 'pendente' e guarda o código de verificação
+    const query = `
+      INSERT INTO usuarios (nome, email, telefone, status, codigo_verificacao, email_verificado, telefone_verificado)
+      VALUES ($1, $2, $3, 'pendente', $4, FALSE, FALSE)
+      ON CONFLICT (email) 
+      DO UPDATE SET 
+        nome = EXCLUDED.nome,
+        telefone = EXCLUDED.telefone,
+        status = 'pendente',
+        codigo_verificacao = EXCLUDED.codigo_verificacao,
+        email_verificado = FALSE,
+        telefone_verificado = FALSE
+      RETURNING id;
+    `;
+
+    await pool.query(query, [nome, email, telefone, codigoVerificacao]);
+
+    // Simulação do envio (aqui depois podemos plugar um serviço real de e-mail/SMS)
+    console.log(`[VERIFICAÇÃO] Código gerado para ${email} / Telefone ${telefone}: ${codigoVerificacao}`);
+
+    res.json({ 
+      success: true, 
+      message: 'Pré-cadastro realizado com sucesso! Insira o código de verificação enviado.',
+      // Enviando o código na resposta temporariamente para testes fáceis (removeremos depois)
+      codigoDebug: codigoVerificacao 
+    });
+
+  } catch (err) {
+    console.error('Erro ao registrar usuário:', err);
+    res.status(500).json({ success: false, message: 'Erro interno ao processar o cadastro.' });
+  }
+});
+
+// 2. Rota para validar o código digitado e ativar a conta
+app.post('/api/verificar-codigo', async (req, res) => {
+  const { email, codigo } = req.body;
+
+  if (!email || !codigo) {
+    return res.status(400).json({ success: false, message: 'Informe o e-mail e o código de verificação.' });
+  }
+
+  try {
+    // Busca o usuário pelo e-mail
+    const resultado = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+
+    if (resultado.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
+    }
+
+    const usuario = resultado.rows[0];
+
+    // Verifica se o código bate com o armazenado
+    if (usuario.codigo_verificacao !== codigo) {
+      return res.status(400).json({ success: false, message: 'Código de verificação incorreto.' });
+    }
+
+    // Se estiver correto, atualiza o status para ativo e marca como verificado
+    await pool.query(`
+      UPDATE usuarios 
+      SET status = 'ativo', email_verificado = TRUE, telefone_verificado = TRUE, codigo_verificacao = NULL
+      WHERE email = $1
+    `, [email]);
+
+    res.json({ success: true, message: 'Conta verificada e ativada com sucesso!' });
+
+  } catch (err) {
+    console.error('Erro ao verificar código:', err);
+    res.status(500).json({ success: false, message: 'Erro interno ao validar o código.' });
+  }
 });
